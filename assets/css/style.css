@@ -164,10 +164,8 @@ img {
 }
 
 .hero-title .blink {
-  -webkit-text-fill-color: var(--color-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--color-primary);
+  animation: blink 1s step-end infinite;
 }
 
 .hero-subtitle {
