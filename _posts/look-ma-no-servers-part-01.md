@@ -1,15 +1,12 @@
-
-# title: "Look Ma, No Servers! The Hidden Limit of AWS Glue: Subnet IP Exhaustion "
-
-
-
 ---
+title: "Look Ma, No Servers! The Hidden Limit of AWS Glue: Subnet IP Exhaustion"
+
 series: Look Ma! no servers
 ---
 
 ## The 7AM Ritual
 
-Our daily batch consisted of 2 critical Glue jobs per weekday, and 2 non-critical Glue jobs every 2 hours producing roughly. Every morning at 7:00 AM, our batch ETL jobs kicked off. By 7:03 AM, Slack lit up.
+Our daily batch consisted of 2 critical Glue jobs per weekday and 2 non-critical Glue jobs every 2 hours. Every morning at 7:00 AM, our batch ETL jobs kicked off. By 7:03 AM, Slack lit up.
 
 ```
 Job: customer-analytics-daily
@@ -19,7 +16,7 @@ Error: The specified subnet does not have enough free
        addresses to satisfy the request
 ```
 
-1–2 intermittent failures every weekday morning. Data warehouse SLAs slipping. Downstream teams blocked before they'd finished their first coffee. And the thing that made it maddening: our calculation confirmed that we had capacity. Plenty of it.
+1–2 intermittent failures everyother weekday morning. Data warehouse SLAs slipping. Downstream teams blocked before they'd finished their first coffee. And the thing that made it maddening: our calculation confirmed that we had capacity. Plenty of it.
 
 Something was consuming IPs that we couldn't see.
 
@@ -198,8 +195,15 @@ The data path ended up clean because we resisted the urge to build anything fanc
 **The reader.** On each poke, the sensor reads back the last N observations for its subnet (N=5, tunable) and takes the **max** of `total_enis`. That becomes the buffer estimate:
 
 ```
-required_ips = workers_needed + max(rolling_max_total_enis, MIN_BUFFER)
-admit if available_ips >= required_ips
+# At decision time:
+current_total = count all ENIs in subnet (in-use + available)
+free_subnet_ips = subnet_size - current_total
+
+# Buffer = worst cleanup tail observed across last N pre-launch observations
+cleanup_buffer = max(rolling_max_available_enis, MIN_BUFFER)
+
+# Admit if there's room for new workers + expected cleanup tail overhang
+admit if free_subnet_ips >= workers_needed + cleanup_buffer
 ```
 
 `MIN_BUFFER = 10` is our floor — a guard against initial runs after implementing the changes.
