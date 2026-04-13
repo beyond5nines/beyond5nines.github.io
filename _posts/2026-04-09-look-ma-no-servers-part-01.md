@@ -274,7 +274,220 @@ We've hit the same shape twice since: No space left on device during Spark check
 
 If you take one thing from this post: assume every managed service has an observability gap, and treat finding it as part of operating the service.
 
-## Grafana dashboard
+## Grafana Dashboard
+
+Below is a sample Grafana dashboard we built to monitor ENI utilization across our three subnets. This dashboard surfaces the signals AWS doesn't expose natively — real-time ENI counts, cleanup lag patterns, rolling max buffers, and the 80% alert threshold that triggers before exhaustion hits.
+
+<style>
+  .gf-root { background: #111217; color: #d0d4de; font-family: var(--font-sans), sans-serif; font-size: 13px; padding: 12px; border-radius: 8px; }
+  .gf-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .gf-title { font-size: 15px; font-weight: 500; color: #e0e3ec; }
+  .gf-meta { display: flex; gap: 10px; align-items: center; }
+  .gf-badge { background: #1f2232; border: 0.5px solid #2f3347; padding: 3px 10px; border-radius: 4px; font-size: 11px; color: #8b92a8; }
+  .gf-alert-badge { background: #2a1a1a; border: 0.5px solid #a32d2d; color: #f09595; }
+  .gf-ok-badge { background: #0d1f17; border: 0.5px solid #3B6D11; color: #97c459; }
+  .gf-row { display: grid; gap: 10px; margin-bottom: 10px; }
+  .gf-stat-row { grid-template-columns: repeat(5, 1fr); }
+  .gf-chart-row { grid-template-columns: 2fr 1fr; }
+  .gf-subnet-row { grid-template-columns: repeat(3, 1fr); }
+  .gf-panel { background: #181b27; border: 0.5px solid #2a2d3e; border-radius: 6px; padding: 10px 14px; }
+  .gf-panel-title { font-size: 11px; color: #8b92a8; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .gf-stat-val { font-size: 28px; font-weight: 500; color: #e0e3ec; line-height: 1; }
+  .gf-stat-sub { font-size: 11px; color: #5c6178; margin-top: 3px; }
+  .gf-stat-danger { color: #e24b4a; }
+  .gf-stat-warn { color: #ef9f27; }
+  .gf-stat-ok { color: #63991f; }
+  .gf-stat-info { color: #378add; }
+  .gf-legend { display: flex; gap: 14px; margin-top: 6px; flex-wrap: wrap; }
+  .gf-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #8b92a8; }
+  .gf-legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+  .gf-util-bar { height: 8px; background: #1f2232; border-radius: 4px; margin: 6px 0 2px; overflow: hidden; }
+  .gf-util-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+  .gf-alert-line-label { font-size: 10px; color: #a32d2d; text-align: right; margin-top: 2px; }
+  .gf-sparkrow { display: flex; gap: 4px; align-items: flex-end; height: 32px; margin: 6px 0 4px; }
+  .gf-spark-bar { flex: 1; border-radius: 2px 2px 0 0; min-width: 4px; }
+  .gf-divider { border: none; border-top: 0.5px solid #2a2d3e; margin: 4px 0 8px; }
+  .gf-time-label { display: flex; justify-content: space-between; font-size: 10px; color: #3d4158; margin-top: 2px; }
+  @media (max-width: 768px) {
+    .gf-stat-row { grid-template-columns: repeat(2, 1fr); }
+    .gf-chart-row { grid-template-columns: 1fr; }
+    .gf-subnet-row { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="gf-root">
+  <div class="gf-topbar">
+    <div>
+      <div class="gf-title">Glue ENI — Subnet Utilization</div>
+      <div style="font-size:11px;color:#5c6178;margin-top:2px;">glue-eni-observations · Last 6 hours · auto-refresh 60s</div>
+    </div>
+    <div class="gf-meta">
+      <span class="gf-badge">us-east-1</span>
+      <span class="gf-badge">Subnet A · B · C</span>
+      <span class="gf-badge gf-alert-badge">⚑ 1 alert firing</span>
+    </div>
+  </div>
+
+  <div class="gf-row gf-stat-row">
+    <div class="gf-panel">
+      <div class="gf-panel-title">Subnet A — utilization</div>
+      <div class="gf-stat-val gf-stat-warn">71%</div>
+      <div class="gf-util-bar"><div class="gf-util-fill" style="width:71%;background:#ef9f27;"></div></div>
+      <div class="gf-stat-sub">42 / 59 IPs</div>
+    </div>
+    <div class="gf-panel">
+      <div class="gf-panel-title">Subnet B — utilization</div>
+      <div class="gf-stat-val gf-stat-ok">34%</div>
+      <div class="gf-util-bar"><div class="gf-util-fill" style="width:34%;background:#63991f;"></div></div>
+      <div class="gf-stat-sub">20 / 59 IPs</div>
+    </div>
+    <div class="gf-panel">
+      <div class="gf-panel-title">Subnet C — utilization</div>
+      <div class="gf-stat-val gf-stat-ok">22%</div>
+      <div class="gf-util-bar"><div class="gf-util-fill" style="width:22%;background:#63991f;"></div></div>
+      <div class="gf-stat-sub">6 / 27 IPs</div>
+    </div>
+    <div class="gf-panel">
+      <div class="gf-panel-title">Sensor blocks (today)</div>
+      <div class="gf-stat-val gf-stat-info">3</div>
+      <div class="gf-stat-sub" style="margin-top:6px;">of 60 runs · all recovered</div>
+    </div>
+    <div class="gf-panel">
+      <div class="gf-panel-title">IP exhaustion failures</div>
+      <div class="gf-stat-val gf-stat-ok">0</div>
+      <div class="gf-stat-sub" style="margin-top:6px;">90-day streak</div>
+    </div>
+  </div>
+
+  <div class="gf-row gf-chart-row">
+    <div class="gf-panel">
+      <div class="gf-panel-title">Subnet A — ENI count over time (6h)</div>
+      <div style="position:relative;width:100%;height:180px;">
+        <canvas id="chartA" role="img" aria-label="Subnet A ENI time series showing in-use, available, and rolling max over 6 hours">ENI counts for Subnet A over 6 hours.</canvas>
+      </div>
+      <div class="gf-legend">
+        <div class="gf-legend-item"><div class="gf-legend-dot" style="background:#378add;"></div>in-use</div>
+        <div class="gf-legend-item"><div class="gf-legend-dot" style="background:#ef9f27;"></div>available (cleanup lag)</div>
+        <div class="gf-legend-item"><div class="gf-legend-dot" style="background:#97c459;opacity:0.6;"></div>rolling max (buffer)</div>
+        <div class="gf-legend-item"><div class="gf-legend-dot" style="background:#e24b4a;border-radius:0;height:2px;width:16px;"></div>80% alert threshold</div>
+      </div>
+    </div>
+    <div class="gf-panel">
+      <div class="gf-panel-title">Active alert</div>
+      <div style="background:#1a0e0e;border:0.5px solid #a32d2d;border-radius:5px;padding:10px 12px;margin-bottom:10px;">
+        <div style="font-size:11px;color:#e24b4a;font-weight:500;margin-bottom:4px;">⚑  subnet-a utilization &gt; 80%</div>
+        <div style="font-size:11px;color:#7a3030;">Fired 07:03 · duration 4m 12s</div>
+        <div style="font-size:11px;color:#7a3030;margin-top:2px;">manual run in wrong subnet</div>
+      </div>
+      <div class="gf-panel-title" style="margin-top:8px;">Rolling max (last 5 obs · Subnet A)</div>
+      <table style="width:100%;font-size:11px;border-collapse:collapse;">
+        <thead><tr style="color:#5c6178;"><th style="text-align:left;padding:3px 0;font-weight:400;">run</th><th style="text-align:right;padding:3px 0;font-weight:400;">total ENIs</th><th style="text-align:right;padding:3px 0;font-weight:400;">in-use</th></tr></thead>
+        <tbody style="color:#b0b6cc;">
+          <tr><td style="padding:3px 0;">dag_run_20260412_0703</td><td style="text-align:right;">42</td><td style="text-align:right;">30</td></tr>
+          <tr><td style="padding:3px 0;">dag_run_20260412_0600</td><td style="text-align:right;">38</td><td style="text-align:right;">20</td></tr>
+          <tr><td style="padding:3px 0;">dag_run_20260412_0500</td><td style="text-align:right;">35</td><td style="text-align:right;">20</td></tr>
+          <tr><td style="padding:3px 0;">dag_run_20260411_1900</td><td style="text-align:right;">41</td><td style="text-align:right;">20</td></tr>
+          <tr><td style="padding:3px 0;">dag_run_20260411_0700</td><td style="text-align:right;">33</td><td style="text-align:right;">20</td></tr>
+          <tr style="color:#ef9f27;font-weight:500;border-top:0.5px solid #2a2d3e;"><td style="padding:4px 0;">rolling max →</td><td style="text-align:right;">42</td><td style="text-align:right;"></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="gf-row gf-subnet-row">
+    <div class="gf-panel">
+      <div class="gf-panel-title">Subnet A (/26 · us-east-1a) — critical batch</div>
+      <div class="gf-sparkrow" id="sparkA"></div>
+      <div class="gf-time-label"><span>−6h</span><span>−3h</span><span>now</span></div>
+      <hr class="gf-divider"/>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#8b92a8;margin-top:4px;">
+        <span>peak today</span><span style="color:#ef9f27;">48 ENIs</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#8b92a8;margin-top:2px;">
+        <span>cleanup tail avg</span><span style="color:#d0d4de;">22 min</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#8b92a8;margin-top:2px;">
+        <span>jobs running</span><span style="color:#378add;">2 × 10 workers</span>
+      </div>
+    </div>
+    <div class="gf-panel">
+      <div class="gf-panel-title">Subnet B (/26 · us-east-1b) — non-critical batch</div>
+      <div class="gf-sparkrow" id="sparkB"></div>
+      <div class="gf-time-label"><span>−6h</span><span>−3h</span><span>now</span></div>
+      <hr class="gf-divider"/>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#8b92a8;margin-top:4px;">
+        <span>peak today</span><span style="color:#63991f;">24 ENIs</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#8b92a8;margin-top:2px;">
+        <span>cleanup tail avg</span><span style="color:#d0d4de;">19 min</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#8b92a8;margin-top:2px;">
+        <span>jobs running</span><span style="color:#378add;">2 × 10 workers</span>
+      </div>
+    </div>
+    <div class="gf-panel">
+      <div class="gf-panel-title">Subnet C (/27 · us-east-1c) — backfill / ad hoc</div>
+      <div class="gf-sparkrow" id="sparkC"></div>
+      <div class="gf-time-label"><span>−6h</span><span>−3h</span><span>now</span></div>
+      <hr class="gf-divider"/>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#8b92a8;margin-top:4px;">
+        <span>peak today</span><span style="color:#63991f;">10 ENIs</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#8b92a8;margin-top:2px;">
+        <span>cleanup tail avg</span><span style="color:#d0d4de;">31 min</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#8b92a8;margin-top:2px;">
+        <span>jobs running</span><span style="color:#378add;">1 concurrent</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const labels = ['01:00','02:00','03:00','04:00','05:00','06:00','07:00','07:03','07:30','08:00','08:30','09:00'];
+const inUse  = [20,20,20,20,20,22,30,30,20,20,20,20];
+const avail  = [0,4,8,12,6,10,12,12,8,6,4,2];
+const rmax   = [38,38,38,38,38,40,42,42,42,42,42,42];
+const thresh = Array(labels.length).fill(Math.round(59*0.8));
+
+new Chart(document.getElementById('chartA'), {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [
+      { label:'in-use', data: inUse, borderColor:'#378add', backgroundColor:'rgba(55,138,221,0.12)', fill:true, tension:0.3, pointRadius:2, borderWidth:1.5 },
+      { label:'available', data: avail, borderColor:'#ef9f27', backgroundColor:'rgba(239,159,39,0.08)', fill:true, tension:0.3, pointRadius:2, borderWidth:1.5 },
+      { label:'rolling max', data: rmax, borderColor:'rgba(151,196,89,0.5)', borderDash:[4,3], fill:false, pointRadius:0, borderWidth:1.2 },
+      { label:'80% threshold', data: thresh, borderColor:'#a32d2d', borderDash:[6,4], fill:false, pointRadius:0, borderWidth:1.2 }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { mode:'index', intersect:false, backgroundColor:'#1f2232', titleColor:'#d0d4de', bodyColor:'#8b92a8', borderColor:'#2f3347', borderWidth:1 } },
+    scales: {
+      x: { ticks: { color:'#5c6178', font:{size:10}, maxRotation:0, autoSkip:true, maxTicksLimit:6 }, grid:{color:'rgba(255,255,255,0.04)'} },
+      y: { min:0, max:59, ticks: { color:'#5c6178', font:{size:10}, stepSize:10 }, grid:{color:'rgba(255,255,255,0.06)'} }
+    }
+  }
+});
+
+function buildSpark(id, data, color) {
+  const el = document.getElementById(id);
+  const mx = Math.max(...data);
+  data.forEach(v => {
+    const b = document.createElement('div');
+    b.className = 'gf-spark-bar';
+    b.style.height = Math.round((v/mx)*100)+'%';
+    b.style.background = color;
+    b.style.opacity = '0.75';
+    el.appendChild(b);
+  });
+}
+buildSpark('sparkA',[20,22,28,48,42,40,42,30,25,22,20,20],'#ef9f27');
+buildSpark('sparkB',[20,20,20,20,20,22,24,20,20,20,20,20],'#63991f');
+buildSpark('sparkC',[6,4,4,8,10,8,6,6,6,6,6,6],'#63991f');
+</script>
 
 ## References 
 
