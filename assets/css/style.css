@@ -133,12 +133,13 @@ img {
 .hero .container {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 60px;
+  align-items: flex-start;
+  gap: 40px;
 }
 
 .hero-content {
-  max-width: 650px;
+  flex: 1;
+  max-width: 900px;
 }
 
 .hero-title {
@@ -174,7 +175,10 @@ img {
 
 .hero-stats {
   display: flex;
-  gap: 40px;
+  flex-direction: column;
+  gap: 24px;
+  flex-shrink: 0;
+  min-width: 100px;
 }
 
 .stat {
