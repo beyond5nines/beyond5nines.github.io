@@ -1,17 +1,24 @@
 # Site settings
-title: Beyond 5 Nines
-description: A personal blog about technology, engineering, and thoughts
-author: Beyond 5 Nines
-email: your-email@example.com
+title: Beyond5Nines
+description: Deep dives into cloud infrastructure, reliability engineering, and building resilient systems.
+author: Beyond5Nines
 url: "https://beyond5nines.com"
 baseurl: ""
 
 # Build settings
 markdown: kramdown
-theme: minima
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
+
+# Excerpt settings
+excerpt_separator: <!--more-->
+
+# Permalink structure
+permalink: /:year/:month/:day/:title/
+
+# Social links
+github_username: beyond5nines
 
 # Exclude from processing
 exclude:
@@ -19,11 +26,4 @@ exclude:
   - Gemfile.lock
   - node_modules
   - vendor
-
-# Permalink structure
-permalink: /:year/:month/:day/:title/
-
-# Social links (optional)
-github_username: beyond5nines
-# twitter_username: your_twitter
-# linkedin_username: your_linkedin
+  - README.md

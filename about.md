@@ -4,14 +4,26 @@ title: About
 permalink: /about/
 ---
 
-# About Beyond 5 Nines
+Welcome to **Beyond5Nines** - a technical blog focused on the complexities of building and operating reliable systems at scale.
 
-This is a personal blog where I share insights about technology, software engineering, and continuous learning.
+## What is "Beyond 5 Nines"?
 
-## What does "Beyond 5 Nines" mean?
+In reliability engineering, "five nines" (99.999% uptime) represents approximately 5 minutes of downtime per year - an ambitious standard for any system. This blog explores what happens when you push beyond conventional standards and uncover the hidden complexities that lie beneath the surface.
 
-In the world of reliability engineering, "five nines" (99.999% uptime) is often considered the gold standard. This blog is about pushing beyond conventional boundaries and exploring what lies beyond the standard.
+## What You'll Find Here
 
-## Contact
+- **Deep Technical Dives** - Investigations into production incidents and the non-obvious causes behind them
+- **Cloud Infrastructure** - Practical insights from operating services on AWS, GCP, and beyond
+- **Reliability Engineering** - Patterns, anti-patterns, and hard-won lessons in building resilient systems
+- **Observability** - Building the signals that AWS and other providers don't ship by default
 
-Feel free to reach out or connect with me on [GitHub](https://github.com/beyond5nines).
+## Philosophy
+
+The best engineering insights come from real-world problems. Every post on this blog stems from actual production challenges - the kind that wake you up at 7AM, the failures that seem impossible until you understand them, and the solutions that seem obvious only in hindsight.
+
+*"Serverless moves the servers out of sight, not out of your problem."*
+
+## Connect
+
+- [GitHub](https://github.com/beyond5nines)
+- [RSS Feed](/feed.xml)

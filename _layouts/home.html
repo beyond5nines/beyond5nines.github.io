@@ -1,0 +1,85 @@
+---
+layout: default
+---
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-content">
+      <h1 class="hero-title">Beyond<span class="highlight">5</span>Nines</h1>
+      <p class="hero-subtitle">Engineering insights that go beyond 99.999%</p>
+      <p class="hero-description">Deep dives into cloud infrastructure, reliability engineering, and the hidden complexities of building resilient systems.</p>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <span class="stat-number">{{ site.posts | size }}</span>
+        <span class="stat-label">Articles</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">{{ site.categories | size }}</span>
+        <span class="stat-label">Topics</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="posts-section">
+  <div class="container">
+    <div class="section-header">
+      <h2>Latest Posts</h2>
+      <p>Recent explorations in engineering and technology</p>
+    </div>
+
+    <div class="posts-grid">
+      {% for post in site.posts %}
+      <article class="post-card">
+        <div class="post-card-content">
+          <div class="post-meta">
+            <time datetime="{{ post.date | date_to_xmlschema }}">
+              {{ post.date | date: "%B %d, %Y" }}
+            </time>
+            {% if post.categories.size > 0 %}
+            <span class="post-category">{{ post.categories | first | upcase }}</span>
+            {% endif %}
+          </div>
+          <h3 class="post-title">
+            <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+          </h3>
+          <p class="post-excerpt">
+            {{ post.excerpt | strip_html | truncate: 180 }}
+          </p>
+          <a href="{{ post.url | relative_url }}" class="read-more">
+            Read article <span class="arrow">&rarr;</span>
+          </a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    {% if site.posts.size == 0 %}
+    <div class="no-posts">
+      <p>No posts yet. Check back soon!</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+{% if site.categories.size > 0 %}
+<section class="categories-section">
+  <div class="container">
+    <div class="section-header">
+      <h2>Topics</h2>
+      <p>Explore by category</p>
+    </div>
+    <div class="categories-list">
+      {% for category in site.categories %}
+      <a href="#" class="category-tag">
+        {{ category[0] }}
+        <span class="count">{{ category[1].size }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{{ content }}

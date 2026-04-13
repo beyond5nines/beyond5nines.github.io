@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% if page.title %}{{ page.title }} | {% endif %}{{ site.title }}</title>
+  <meta name="description" content="{{ page.excerpt | default: site.description | strip_html | truncate: 160 }}">
+  <link rel="canonical" href="{{ page.url | absolute_url }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+  {% feed_meta %}
+  {% seo %}
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container">
+      <a href="{{ '/' | relative_url }}" class="logo">
+        <span class="logo-icon">B5N</span>
+        <span class="logo-text">Beyond5Nines</span>
+      </a>
+      <div class="nav-links">
+        <a href="{{ '/' | relative_url }}" {% if page.url == '/' %}class="active"{% endif %}>Home</a>
+        <a href="{{ '/about' | relative_url }}" {% if page.url == '/about/' %}class="active"{% endif %}>About</a>
+        <a href="https://github.com/{{ site.github_username }}" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    {{ content }}
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <span class="logo-icon">B5N</span>
+          <p>Engineering insights beyond the standard.</p>
+        </div>
+        <div class="footer-links">
+          <a href="https://github.com/{{ site.github_username }}" target="_blank" rel="noopener">GitHub</a>
+          <a href="{{ '/feed.xml' | relative_url }}">RSS Feed</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; {{ 'now' | date: "%Y" }} {{ site.title }}. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
