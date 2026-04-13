@@ -17,8 +17,9 @@ excerpt_separator: <!--more-->
 # Permalink structure
 permalink: /:year/:month/:day/:title/
 
-# Social links
-github_username: beyond5nines
+# Contact
+email: beyond5nines@gmail.com
+linkedin_url: https://www.linkedin.com/in/rahul-nyc/
 
 # Exclude from processing
 exclude:
