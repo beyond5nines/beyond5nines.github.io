@@ -1,12 +1,15 @@
----
-title: "Look Ma, No Servers! "
 
+# title: "Look Ma, No Servers! The Hidden Limit of AWS Glue: Subnet IP Exhaustion "
+
+
+
+---
 series: Look Ma! no servers
 ---
 
 ## The 7AM Ritual
 
-Every morning at 7:00 AM, our batch ETL jobs kicked off. By 7:03 AM, Slack lit up.
+Our daily batch consisted of 2 critical Glue jobs per weekday, and 2 non-critical Glue jobs every 2 hours producing roughly. Every morning at 7:00 AM, our batch ETL jobs kicked off. By 7:03 AM, Slack lit up.
 
 ```
 Job: customer-analytics-daily
@@ -16,7 +19,7 @@ Error: The specified subnet does not have enough free
        addresses to satisfy the request
 ```
 
-1, sometimes 2 failures intermittent every weekday morning. Data warehouse SLAs slipping. Downstream teams blocked before they'd finished their first coffee. And the thing that made it maddening: our calculation confirmed that we had capacity. Plenty of it.
+1–2 intermittent failures every weekday morning. Data warehouse SLAs slipping. Downstream teams blocked before they'd finished their first coffee. And the thing that made it maddening: our calculation confirmed that we had capacity. Plenty of it.
 
 Something was consuming IPs that we couldn't see.
 
@@ -27,6 +30,8 @@ The first thing we had to accept was that "serverless" is a marketing word. The 
 Our Glue jobs pull custom Python libraries and dependencies from a self-hosted JFrog Artifactory inside of a private VPC. To reach it, every Glue job binds to a Glue Connection — a VPC and a subnet. And every Glue worker that spins up grabs an Elastic Network Interface: a virtual NIC holding a real IP from the subnet's CIDR, for the lifetime of the job.
 
 Four concurrent jobs × ten workers each = 40 IPs. From a /26 with 59 usable. We'd sized for ~5 minutes of ENI cleanup lag between runs — a reasonable assumption, since AWS doesn't document otherwise. On paper, fine. In practice, failing.
+
+> AWS reserves 5 IP addresses per subnet, so a /26 provides 59 usable addresses.
 
 So we started looking at the ENIs themselves.
 
@@ -89,7 +94,7 @@ aws ec2 describe-network-interfaces \
 }
 ```
 
-The attachment block revealed two things. First, "DeleteOnTermination": false — Glue wasn't going to clean these up on instance termination, we'd be waiting on AWS's async reaper. Second, and more surprising: the ENI had been in in-use state for over an hour after the job completed. in-use should mean an active workload. It didn't. Glue was leaving ENIs attached to instances we couldn't see, for reasons we couldn't observe, long after the work was done. The flag told us cleanup would be async; the attach time told us how async.
+The attachment block revealed two things. First, "DeleteOnTermination": false — meaning the ENI lifecycle is managed asynchronously by the Glue service rather than tied directly to instance termination. Second, and more surprising: the ENI had been in in-use state for over an hour after the job completed. in-use should mean an active workload. It didn't appear to. Glue was leaving ENIs attached to instances we couldn't see, for reasons we couldn't observe, long after the work was done. The flag told us cleanup would be async; the attach time told us how async.
 
 That explained the 50. What about the 8 in `available`?
 
@@ -115,7 +120,7 @@ CREATED → in-use (attached) → available (detached) → deleted
           holds IP up to 60+ min   holds IP 30–40 min
 ```
 
-Together, for a single ENI, they could pin an IP for ninety minutes after its job completed. Multiply that by a batch cadence that doesn't wait ninety minutes between runs, and you get 7:03AM every morning.
+Together, for a single ENI, they could pin an IP for sixty minutes after its job completed. Multiply that by a batch cadence that doesn't wait sixty minutes between runs, and you get 7:03AM every morning.
 
 This isn't just us — it's a known pattern. See [AWS Glue does not clean up network interfaces](https://repost.aws/questions/QUrmpoQEFxRwWvt5Es6nGmaA/aws-glue-does-not-clean-up-network-interfaces) and [AWS Glue Job Not Releasing ENIs After Completion](https://repost.aws/questions/QUBdpMaxjcST-voDzcNld3bA/aws-glue-job-not-releasing-enis-after-completion), where one operator reports 1,200+ accumulated ENIs from the same root cause. Also [Glue Connections Running Out of IPs](https://repost.aws/questions/QUE2ZiLoMFSt-tl7OV5pySbg/glue-connections-running-out-of-ips).
 
@@ -141,9 +146,9 @@ We had the picture. Now we needed the fix.
 
 Our first instinct was the obvious one: make the subnet bigger. We pulled up the VPC console, drafted the CIDR change, and were halfway through the Terraform PR before we stopped and asked: *does this actually solve it?*
 
-A /24 gives you 251 usable IPs. Four times the headroom. But our ENI consumption wasn't static — we'd been bumping worker counts every quarter as data volumes grew, and job durations were creeping up with them. We did the math: at our current growth rate, a /24 buys us maybe eighteen months. And here's the worse part — without the ghost ENI problem *visible*, we'd still hit silent 7:03AM failures, just less often. Less frequent failures that still blow the SLA are harder to catch, not easier. We closed the PR.
+A /24 gives you 251 usable IPs. Four times the headroom. But our ENI consumption wasn't static — we'd been bumping worker counts every quarter as data volumes grew, and job durations were creeping up with them. And here's the worse part — without the ghost ENI problem *visible*, we'd still hit silent 7:03AM failures, just less often. Less frequent failures that still blow the SLA are harder to catch, not easier. We closed the PR.
 
-The second instinct was architectural: eliminate the VPC binding entirely with PrivateLink. No VPC, no ENIs, no problem. We spent an afternoon mapping what it would take — and hit a wall. PrivateLink needs an AWS-side service endpoint to front. Our JFrog Artifactory runs outside AWS. There's nothing to front. Dead end.
+The second instinct was architectural: eliminate the VPC binding entirely with PrivateLink. No VPC, no ENIs, no problem. We spent an afternoon mapping what it would take — and hit a wall. PrivateLink requires an AWS service endpoint to front. Since our Artifactory ran outside AWS, this would require additional infrastructure we weren't prepared to build. Dead end.
 
 Sitting in the postmortem the next morning, one of us drew the ENI lifecycle on the whiteboard next to the job launch timeline and said the thing that reframed it: *the subnet isn't too small. The launcher is blind.*
 
@@ -159,31 +164,13 @@ So we split the /26 into three subnets. Not by capacity. By *what could hurt wha
 - **Subnet B (/26, us-east-1b)** — non-critical batch (reporting, aggregations)
 - **Subnet C (/27, us-east-1c)** — backfill, ad hoc, manual reruns
 
-> Subnet C is intentionally thin — ad-hoc failures are acceptable; the sensor here is a courtesy, not an SLA gate
+> Subnet C is intentionally small — ad-hoc failures are acceptable; the sensor here is a courtesy, not an SLA gate
 
-The logic we kept coming back to: if a backfill leaves 20 ENIs lingering in `available` for 40 minutes, we want that cleanup tail *trapped*. Contained in Subnet C. Not bleeding into the critical morning window in Subnet A. Before the split, every category shared one IP pool, and one category's cleanup lag was starving the others — that was exactly the failure mode we'd been watching every morning for weeks.
+The logic we kept coming back to: if a backfill leaves 20 ENIs lingering in `available` for 40 minutes, we want that cleanup tail *trapped*. Contained in Subnet C. Not bleeding into the critical morning window in Subnet A.
 
-We put each subnet in a different AZ, but we were careful not to oversell that to ourselves. A Glue job binds to one Connection, one subnet, one AZ. There's no native multi-AZ for a single Glue job. All we bought was that *different job categories* live in different AZs. A us-east-1a event still takes out critical batch until we manually repoint the Connection. We looked each other in the eye on that one: AZ events are rare, ENI starvation was happening daily. We took the trade.
+We put each subnet in a different AZ, but we were careful not to oversell that to ourselves. A Glue job binds to one Connection, one subnet, one AZ. There's no native multi-AZ for a single Glue job. All we bought was that *different job categories* live in different AZs. A us-east-1a event still takes out critical batch until we manually repoint the Connection. 
 
 The cutover was straightforward. Three new subnets, three new Glue Connections, DAGs repointed via Terraform. We staged it over a week — critical first (highest risk, do it while we're paying attention), non-critical next, backfills last. Every migration window we waited for the subnet to drain to zero active ENIs before flipping traffic.
-
-Post-split capacity looked like this:
-
-```
-Subnet A (/26, us-east-1a): 59 usable IPs
-  - 2 critical jobs × 10 workers = 20 IPs active
-  - Cleanup lag: ~20 IPs
-  - Buffer: 19 IPs → sufficient
-
-Subnet B (/26, us-east-1b): 59 usable IPs
-  - 2 non-critical jobs × 10 workers = 20 IPs active
-  - Cleanup lag: ~20 IPs
-  - Buffer: 19 IPs → sufficient
-
-Subnet C (/27, us-east-1c): 27 usable IPs
-  - Ad hoc (1–2 concurrent)
-  - Isolated blast radius for experiments
-```
 
 The 7AM failures dropped immediately. But we knew the story wasn't over. Isolation stopped categories from starving each other. It didn't stop *one* category from starving its own subnet during a bad cleanup day. We'd moved the failure mode, not killed it.
 
@@ -193,7 +180,6 @@ The whiteboard insight — *the launcher is blind* — was still unaddressed. We
 
 So we wrote a sensor. Simple in shape: before each Glue job category runs, a custom Airflow sensor calls `DescribeNetworkInterfaces` filtered by subnet ID, counts ENIs across all states (`in-use` and `available`), and makes a call — launch now, or wait sixty seconds and ask again. Max wait: ten minutes, then fail loud.
 
-That part was a weekend. The interesting part — the part that took us three iterations to get right — was the buffer.
 
 ### Why a Static Buffer Didn't Work
 
@@ -245,7 +231,7 @@ An alert fires at 80% utilization — above the admission threshold but below ex
 When the 80% alert fires:
 
 1. Run the Step 1 ENI count query from the investigation above. Confirm actual state.
-2. Check for orphaned ENIs (`available` with no active job) — safe to delete via `aws ec2 delete-network-interface` after confirming. See [common deletion failure modes](https://repost.aws/questions/QUMRV13LI8QJKxcZVL3-1mUg/how-delete-networking-interface-asociate-with-vpc) and the [`InvalidParameterValue` error](https://repost.aws/questions/QU4vgx-AXzQ_CZcrYjZLEDKg/unable-to-delete-stuck-network-interface-eni-after-elb-deletion-need-aws-intervention) you'll hit if you try to delete before the ENI fully detaches.
+2. Check for orphaned ENIs (`available` with no active job) — typically safe to delete once confirmed detached from any active Glue job via `aws ec2 delete-network-interface` after confirming. See [common deletion failure modes](https://repost.aws/questions/QUMRV13LI8QJKxcZVL3-1mUg/how-delete-networking-interface-asociate-with-vpc) and the [`InvalidParameterValue` error](https://repost.aws/questions/QU4vgx-AXzQ_CZcrYjZLEDKg/unable-to-delete-stuck-network-interface-eni-after-elb-deletion-need-aws-intervention) you'll hit if you try to delete before the ENI fully detaches.
 3. Check for stuck job runs (`STOPPING` state that never resolves):
    ```bash
    aws glue get-job-runs --job-name <job-name> --max-results 10 \
