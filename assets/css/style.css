@@ -87,23 +87,28 @@ img {
 .logo {
   display: flex;
   align-items: center;
-  gap: 12px;
   color: var(--color-text);
   font-weight: 600;
   font-size: 1.1rem;
+  font-family: var(--font-mono);
 }
 
 .logo:hover {
   color: var(--color-text);
 }
 
-.logo-icon {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-  color: white;
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 0.85rem;
+.logo .logo-text {
+  color: var(--color-text);
+}
+
+.blink {
+  animation: blink 1s step-end infinite;
+  color: var(--color-primary);
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 .nav-links {
@@ -145,16 +150,21 @@ img {
 .hero-title {
   font-size: 3.5rem;
   font-weight: 700;
+  font-family: var(--font-mono);
   letter-spacing: -0.02em;
   margin-bottom: 16px;
-  background: linear-gradient(135deg, var(--color-text) 0%, var(--color-text-muted) 100%);
+  color: var(--color-text);
+}
+
+.hero-title .highlight {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.hero-title .highlight {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+.hero-title .blink {
+  -webkit-text-fill-color: var(--color-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
