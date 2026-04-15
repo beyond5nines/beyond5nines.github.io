@@ -15,7 +15,7 @@ plugins:
 excerpt_separator: <!--more-->
 
 # Permalink structure
-permalink: /:year/:month/:day/:title/
+permalink: /:title/
 
 # Contact
 email: beyond5nines@gmail.com

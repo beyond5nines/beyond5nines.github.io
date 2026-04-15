@@ -19,7 +19,7 @@ Each post in this series follows the same pattern: a production failure that see
 
 ## Posts in This Series
 
-### Part 1: [Subnet IP Exhaustion](/2026/04/09/look-ma-no-servers-01/)
+### Part 1: [Subnet IP Exhaustion](/look-ma-no-servers-01/)
 **The problem:** Glue jobs failing with "The specified subnet does not have enough free addresses" — even though our math said we had capacity.
 
 **The root cause:** AWS Glue's ENI lifecycle extends far beyond job completion. ENIs remain attached for 60+ minutes after jobs finish, silently consuming IPs.
@@ -28,7 +28,7 @@ Each post in this series follows the same pattern: a production failure that see
 
 ---
 
-### Part 2: [The "No Space Left on Device" Trap](/2026/04/10/look-ma-no-servers-02/)
+### Part 2: [The "No Space Left on Device" Trap](/look-ma-no-servers-02/)
 **The problem:** Glue jobs failing after 48 minutes with "No space left on device" — on workers that should have had plenty of disk.
 
 **The root cause:** Spark shuffle spill consumes local disk faster than expected when partition counts are wrong and compression is ineffective.

@@ -207,4 +207,4 @@ The gap between "compression is enabled" and "compression is doing anything usef
 - [Introducing Amazon S3 Shuffle in AWS Glue](https://aws.amazon.com/blogs/big-data/introducing-amazon-s3-shuffle-in-aws-glue/)
 - [Spark Adaptive Query Execution](https://spark.apache.org/docs/latest/sql-performance-tuning.html#adaptive-query-execution)
 - [Spark Compression and Serialization](https://spark.apache.org/docs/latest/configuration.html#compression-and-serialization)
-- [Look Ma, No Servers! Part 01 — Subnet IP Exhaustion](/2026/04/09/look-ma-no-servers-01/)
+- [Look Ma, No Servers! Part 01 — Subnet IP Exhaustion](/look-ma-no-servers-01/)
