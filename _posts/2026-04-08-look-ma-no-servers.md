@@ -36,14 +36,6 @@ Each post in this series follows the same pattern: a production failure that see
 
 ---
 
-## Coming Soon
-
-- **Part 3: Exit Code 137** — When Glue kills your executor and leaves no logs behind
-- **Part 4: The Connection Pool That Wasn't** — JDBC connections, Glue, and the mystery of the stale handles
-- **Part 5: S3 Throttling in Disguise** — When "slow job" actually means "you hit a partition limit"
-
----
-
 ## The Pattern
 
 Every post in this series follows the same shape:
