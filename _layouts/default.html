@@ -59,5 +59,17 @@
       </div>
     </div>
   </footer>
+  <script>
+    (function() {
+      const on = '{{ "/assets/images/favicon-on.svg" | relative_url }}';
+      const off = '{{ "/assets/images/favicon-off.svg" | relative_url }}';
+      const link = document.querySelector('link[rel="icon"]');
+      let state = true;
+      setInterval(function() {
+        state = !state;
+        link.href = state ? on : off;
+      }, 500);
+    })();
+  </script>
 </body>
 </html>
