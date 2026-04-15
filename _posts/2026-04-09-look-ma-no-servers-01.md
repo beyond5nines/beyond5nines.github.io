@@ -4,6 +4,8 @@ title: "Look Ma, No Servers! The Hidden Limit of AWS Glue: Subnet IP Exhaustion"
 date: 2026-04-09 12:00:00 -0000
 categories: aws glue serverless
 series: Look Ma! no servers
+redirect_from:
+  - /2026/04/09/look-ma-no-servers-01/
 ---
 
 ## The 7AM Ritual

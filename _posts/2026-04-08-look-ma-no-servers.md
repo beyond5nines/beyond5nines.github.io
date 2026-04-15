@@ -5,6 +5,8 @@ date: 2026-04-08 12:00:00 -0000
 categories: aws glue serverless
 series: Look Ma! no servers
 pinned: true
+redirect_from:
+  - /2026/04/08/look-ma-no-servers/
 ---
 
 ## The Series
