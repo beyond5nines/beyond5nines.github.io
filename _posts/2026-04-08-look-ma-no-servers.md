@@ -4,6 +4,7 @@ title: "Look Ma, No Servers!"
 date: 2026-04-08 12:00:00 -0000
 categories: aws glue serverless series
 series: Look Ma! no servers
+pinned: true
 ---
 
 ## The Series

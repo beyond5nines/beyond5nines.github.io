@@ -245,6 +245,26 @@ img {
   border-color: var(--color-primary);
 }
 
+.post-card.pinned {
+  border-color: #00FF00;
+  background: linear-gradient(135deg, var(--color-bg-secondary) 0%, rgba(0, 255, 0, 0.05) 100%);
+}
+
+.post-card.pinned:hover {
+  border-color: #00FF00;
+}
+
+.pin-badge {
+  background: #00FF00;
+  color: #0a0a0b;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+}
+
 .post-card-content {
   padding: 28px;
 }

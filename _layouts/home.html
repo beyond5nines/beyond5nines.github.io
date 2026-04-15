@@ -29,7 +29,30 @@ layout: default
     </div>
 
     <div class="posts-grid">
-      {% for post in site.posts %}
+      {% assign pinned_posts = site.posts | where: "pinned", true %}
+      {% assign regular_posts = site.posts | where_exp: "post", "post.pinned != true" %}
+      {% for post in pinned_posts %}
+      <article class="post-card pinned">
+        <div class="post-card-content">
+          <div class="post-meta">
+            <span class="pin-badge">SERIES</span>
+            {% if post.categories.size > 0 %}
+            <span class="post-category">{{ post.categories | first | upcase }}</span>
+            {% endif %}
+          </div>
+          <h3 class="post-title">
+            <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+          </h3>
+          <p class="post-excerpt">
+            {{ post.excerpt | strip_html | truncate: 180 }}
+          </p>
+          <a href="{{ post.url | relative_url }}" class="read-more">
+            Read article <span class="arrow">&rarr;</span>
+          </a>
+        </div>
+      </article>
+      {% endfor %}
+      {% for post in regular_posts %}
       <article class="post-card">
         <div class="post-card-content">
           <div class="post-meta">
