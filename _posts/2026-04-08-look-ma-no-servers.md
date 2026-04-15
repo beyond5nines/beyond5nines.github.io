@@ -2,7 +2,7 @@
 layout: post
 title: "Look Ma, No Servers!"
 date: 2026-04-08 12:00:00 -0000
-categories: aws glue serverless series
+categories: aws glue serverless
 series: Look Ma! no servers
 pinned: true
 ---
