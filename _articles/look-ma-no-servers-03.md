@@ -6,7 +6,6 @@ categories: aws glue serverless spark
 series: Look Ma! no servers
 redirect_from:
   - /2026/04/10/look-ma-no-servers-02/
-  - /look-ma-no-servers-02/
 ---
 
 ## The 48-Minute Silent Faliure
