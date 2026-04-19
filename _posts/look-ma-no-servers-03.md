@@ -1,11 +1,12 @@
 ---
 layout: post
 title: "Look Ma, No Servers! AWS Glue and the 'No Space Left on Device' Trap"
-date: 2026-04-10 12:00:00 -0000
+date: 2026-04-11 12:00:00 -0000
 categories: aws glue serverless spark
 series: Look Ma! no servers
 redirect_from:
   - /2026/04/10/look-ma-no-servers-02/
+  - /look-ma-no-servers-02/
 ---
 
 ## The 48-Minute Lie
