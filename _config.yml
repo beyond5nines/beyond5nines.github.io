@@ -18,6 +18,26 @@ excerpt_separator: <!--more-->
 # Permalink structure
 permalink: /:title/
 
+# Collections
+collections:
+  articles:
+    output: true
+    permalink: /:title/
+    sort_by: date
+
+# Feed
+feed:
+  collections:
+    - articles
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: articles
+    values:
+      layout: post
+
 # Contact
 email: beyond5nines@gmail.com
 linkedin_url: https://www.linkedin.com/in/rahul-nyc/

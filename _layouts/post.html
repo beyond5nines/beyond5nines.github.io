@@ -19,7 +19,9 @@ layout: default
       <h1 class="post-title">{{ page.title }}</h1>
       {% if page.series %}
       <div class="post-series">
-        <span>Series:</span> <a href="/look-ma-no-servers/">{{ page.series }}</a>
+        {% assign series_index = site.articles | where: "pinned", true | where: "series", page.series | first %}
+        <span>Series:</span>
+        {% if series_index %}<a href="{{ series_index.url | relative_url }}">{{ page.series }}</a>{% else %}{{ page.series }}{% endif %}
       </div>
       {% endif %}
     </div>
@@ -33,17 +35,29 @@ layout: default
 
   <footer class="post-footer">
     <div class="container container-narrow">
+      {% assign sorted = site.articles | sort: "date" %}
+      {% for article in sorted %}
+        {% if article.url == page.url %}
+          {% unless forloop.first %}
+            {% assign prev_article = sorted[forloop.index0 | minus: 1] %}
+          {% endunless %}
+          {% unless forloop.last %}
+            {% assign next_idx = forloop.index0 | plus: 1 %}
+            {% assign next_article = sorted[next_idx] %}
+          {% endunless %}
+        {% endif %}
+      {% endfor %}
       <div class="post-navigation">
-        {% if page.previous.url %}
-        <a href="{{ page.previous.url | relative_url }}" class="nav-link nav-prev">
+        {% if prev_article %}
+        <a href="{{ prev_article.url | relative_url }}" class="nav-link nav-prev">
           <span class="nav-label">&larr; Previous</span>
-          <span class="nav-title">{{ page.previous.title | truncate: 50 }}</span>
+          <span class="nav-title">{{ prev_article.title | truncate: 50 }}</span>
         </a>
         {% endif %}
-        {% if page.next.url %}
-        <a href="{{ page.next.url | relative_url }}" class="nav-link nav-next">
+        {% if next_article %}
+        <a href="{{ next_article.url | relative_url }}" class="nav-link nav-next">
           <span class="nav-label">Next &rarr;</span>
-          <span class="nav-title">{{ page.next.title | truncate: 50 }}</span>
+          <span class="nav-title">{{ next_article.title | truncate: 50 }}</span>
         </a>
         {% endif %}
       </div>
