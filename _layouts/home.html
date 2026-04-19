@@ -25,59 +25,86 @@ layout: default
 <section class="posts-section">
   <div class="container">
     <div class="section-header">
-      <h2>Latest Posts</h2>
-      <p>Recent explorations! </p>
+      <h2>Series</h2>
+      <p>Posts grouped by investigation</p>
     </div>
 
-    <div class="posts-grid">
-      {% assign sorted_articles = site.articles | sort: "date" | reverse %}
-      {% assign pinned_posts = sorted_articles | where: "pinned", true %}
-      {% assign regular_posts = sorted_articles | where_exp: "post", "post.pinned != true" %}
-      {% for post in pinned_posts %}
-      <article class="post-card pinned">
-        <div class="post-card-content">
-          <div class="post-meta">
-            <span class="pin-badge">SERIES</span>
-            {% if post.categories.size > 0 %}
-            <span class="post-category">{{ post.categories | first | upcase }}</span>
-            {% endif %}
-          </div>
-          <h3 class="post-title">
-            <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
-          </h3>
-          <p class="post-excerpt">
-            {{ post.excerpt | strip_html | truncate: 180 }}
-          </p>
-          <a href="{{ post.url | relative_url }}" class="read-more">
-            Read article <span class="arrow">&rarr;</span>
-          </a>
+    {% assign sorted_articles = site.articles | sort: "date" | reverse %}
+    {% assign series_indices = sorted_articles | where: "pinned", true %}
+    {% assign episode_posts = sorted_articles | where_exp: "post", "post.pinned != true" %}
+    {% assign series_names = episode_posts | map: "series" | uniq | compact %}
+
+    {% for series_name in series_names %}
+      {% assign series_index = series_indices | where: "series", series_name | first %}
+      {% assign series_posts = episode_posts | where: "series", series_name | sort: "date" %}
+      <div class="series-group">
+        <div class="series-group-header">
+          <h3>{{ series_name }}</h3>
+          {% if series_index %}
+          <a href="{{ series_index.url | relative_url }}" class="series-index-link">All parts &rarr;</a>
+          {% endif %}
         </div>
-      </article>
-      {% endfor %}
-      {% for post in regular_posts %}
-      <article class="post-card">
-        <div class="post-card-content">
-          <div class="post-meta">
-            <time datetime="{{ post.date | date_to_xmlschema }}">
-              {{ post.date | date: "%B %d, %Y" }}
-            </time>
-            {% if post.categories.size > 0 %}
-            <span class="post-category">{{ post.categories | first | upcase }}</span>
-            {% endif %}
-          </div>
-          <h3 class="post-title">
-            <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
-          </h3>
-          <p class="post-excerpt">
-            {{ post.excerpt | strip_html | truncate: 180 }}
-          </p>
-          <a href="{{ post.url | relative_url }}" class="read-more">
-            Read article <span class="arrow">&rarr;</span>
-          </a>
+        <div class="posts-grid">
+          {% for post in series_posts %}
+          <article class="post-card">
+            <div class="post-card-content">
+              <div class="post-meta">
+                <time datetime="{{ post.date | date_to_xmlschema }}">
+                  {{ post.date | date: "%B %d, %Y" }}
+                </time>
+                {% if post.categories.size > 0 %}
+                <span class="post-category">{{ post.categories | first | upcase }}</span>
+                {% endif %}
+              </div>
+              <h3 class="post-title">
+                <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+              </h3>
+              <p class="post-excerpt">
+                {{ post.excerpt | strip_html | truncate: 180 }}
+              </p>
+              <a href="{{ post.url | relative_url }}" class="read-more">
+                Read article <span class="arrow">&rarr;</span>
+              </a>
+            </div>
+          </article>
+          {% endfor %}
         </div>
-      </article>
-      {% endfor %}
-    </div>
+      </div>
+    {% endfor %}
+
+    {% assign standalone_posts = episode_posts | where_exp: "post", "post.series == nil or post.series == ''" %}
+    {% if standalone_posts.size > 0 %}
+      <div class="series-group">
+        <div class="series-group-header">
+          <h3>Standalone</h3>
+        </div>
+        <div class="posts-grid">
+          {% for post in standalone_posts %}
+          <article class="post-card">
+            <div class="post-card-content">
+              <div class="post-meta">
+                <time datetime="{{ post.date | date_to_xmlschema }}">
+                  {{ post.date | date: "%B %d, %Y" }}
+                </time>
+                {% if post.categories.size > 0 %}
+                <span class="post-category">{{ post.categories | first | upcase }}</span>
+                {% endif %}
+              </div>
+              <h3 class="post-title">
+                <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+              </h3>
+              <p class="post-excerpt">
+                {{ post.excerpt | strip_html | truncate: 180 }}
+              </p>
+              <a href="{{ post.url | relative_url }}" class="read-more">
+                Read article <span class="arrow">&rarr;</span>
+              </a>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
 
     {% if site.articles.size == 0 %}
     <div class="no-posts">
