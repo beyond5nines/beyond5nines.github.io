@@ -173,6 +173,13 @@ Stage 3 — What happened before S3 Shuffle:
 
 Over-partitioning made it worse: 200 sort buckets forces more merge passes, more intermediate writes, more disk consumed per record.
 
+> The manual parsing above is now packaged as **[`analyze_shuffle`](https://github.com/beyond5nines/brahmagupta)** — an open source CLI tool that runs all four steps in one command and outputs the same partition map, compression comparison, and tuning recommendations shown here.
+>
+> ```bash
+> pip install ".[lz4]"
+> analyze-shuffle shuffle_98_37726_0.data
+> ```
+
 ### What the Analysis Is Telling Us
 
 We now had two concrete problems the files were pointing at — neither of which was visible in the Glue console.
@@ -211,3 +218,4 @@ The gap between "compression is enabled" and "compression is doing anything usef
 - [Spark Adaptive Query Execution](https://spark.apache.org/docs/latest/sql-performance-tuning.html#adaptive-query-execution)
 - [Spark Compression and Serialization](https://spark.apache.org/docs/latest/configuration.html#compression-and-serialization)
 - [Look Ma, No Servers! Part 01 — Subnet IP Exhaustion](/look-ma-no-servers-01/)
+- [brahmagupta — analyze_shuffle CLI tool](https://github.com/beyond5nines/brahmagupta)
