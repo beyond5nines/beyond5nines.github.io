@@ -9,8 +9,8 @@
   <link rel="icon" type="image/svg+xml" href="{{ '/assets/images/favicon.svg' | relative_url }}?v=4">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}?v=3">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}?v=4">
   <style>
     @keyframes blink {
       0%, 100% { opacity: 1; }
@@ -18,8 +18,7 @@
     }
     .blink {
       animation: blink 1s step-end infinite;
-      color: #e4e4e7;
-      display: inline-block;
+      color: #e8eaed;
     }
   </style>
   {% feed_meta %}
@@ -29,12 +28,12 @@
   <nav class="navbar">
     <div class="container">
       <a href="{{ '/' | relative_url }}" class="logo">
-        <span class="logo-text">beyond<span style="color:#00FF00;">5</span>nines<span class="blink">_</span></span>
+        <span class="logo-text">beyond<span class="highlight">5</span>nines<span class="blink">_</span></span>
       </a>
       <div class="nav-links">
-        <a href="{{ '/' | relative_url }}" {% if page.url == '/' %}class="active"{% endif %}>Home</a>
-        <a href="https://github.com/beyond5nines" target="_blank" rel="noopener">GitHub</a>
-        <a href="https://www.linkedin.com/in/rahul-nyc/" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="{{ '/' | relative_url }}" {% if page.url == '/' %}class="active"{% endif %}>home</a>
+        <a href="https://github.com/beyond5nines" target="_blank" rel="noopener">github</a>
+        <a href="https://www.linkedin.com/in/rahul-nyc/" target="_blank" rel="noopener">linkedin</a>
       </div>
     </div>
   </nav>
@@ -47,17 +46,14 @@
     <div class="container">
       <div class="footer-content">
         <div class="footer-brand">
-          <span class="logo-text">beyond<span style="color:#00FF00;">5</span>nines<span class="blink">_</span></span>
-          <p>Engineering insights beyond the standard.</p>
+          <span class="logo-text">beyond<span class="highlight">5</span>nines</span>
+          &nbsp;&middot;&nbsp; © {{ 'now' | date: "%Y" }} {{ site.title }}
         </div>
         <div class="footer-links">
-          <a href="https://github.com/beyond5nines" target="_blank" rel="noopener">GitHub</a>
-          <a href="https://www.linkedin.com/in/rahul-nyc/" target="_blank" rel="noopener">LinkedIn</a>
-          <a href="mailto:beyond5nines@gmail.com">beyond5nines@gmail.com</a>
+          <a href="https://github.com/beyond5nines" target="_blank" rel="noopener">github</a>
+          <a href="https://www.linkedin.com/in/rahul-nyc/" target="_blank" rel="noopener">linkedin</a>
+          <a href="mailto:beyond5nines@gmail.com">email</a>
         </div>
-      </div>
-      <div class="footer-bottom">
-        <p>&copy; {{ 'now' | date: "%Y" }} {{ site.title }}. All rights reserved.</p>
       </div>
     </div>
   </footer>

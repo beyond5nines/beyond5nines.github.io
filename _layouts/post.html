@@ -4,26 +4,38 @@ layout: default
 
 <article class="post">
   <header class="post-header">
-    <div class="container">
-      <div class="post-meta">
-        <time datetime="{{ page.date | date_to_xmlschema }}">
-          {{ page.date | date: "%B %d, %Y" }}
-        </time>
-        {% if page.categories.size > 0 %}
-        <span class="separator">&bull;</span>
-        {% for category in page.categories %}
-        <span class="post-category">{{ category }}</span>
-        {% endfor %}
+    <div class="container container-narrow">
+      <div class="post-breadcrumb">
+        <a href="{{ '/' | relative_url }}">home</a>
+        <span>/</span>
+        {% if page.series %}
+          {% assign series_index = site.articles | where: "pinned", true | where: "series", page.series | first %}
+          {% if series_index %}
+            <a href="{{ series_index.url | relative_url }}">{{ page.series }}</a>
+          {% else %}
+            <span>{{ page.series }}</span>
+          {% endif %}
+          <span>/</span>
         {% endif %}
+        <span>{{ page.title | truncate: 40 }}</span>
       </div>
       <h1 class="post-title">{{ page.title }}</h1>
-      {% if page.series %}
-      <div class="post-series">
-        {% assign series_index = site.articles | where: "pinned", true | where: "series", page.series | first %}
-        <span>Series:</span>
-        {% if series_index %}<a href="{{ series_index.url | relative_url }}">{{ page.series }}</a>{% else %}{{ page.series }}{% endif %}
+      <div class="post-page-meta">
+        <time datetime="{{ page.date | date_to_xmlschema }}">
+          {{ page.date | date: "%Y-%m-%d" }}
+        </time>
+        {% if page.categories.size > 0 %}
+        <span>&middot;</span>
+        {% for category in page.categories %}
+        <span class="post-category">{{ category | upcase }}</span>
+        {% endfor %}
+        {% endif %}
+        {% assign words = content | number_of_words %}
+        {% assign minutes = words | divided_by: 250 %}
+        {% if minutes < 1 %}{% assign minutes = 1 %}{% endif %}
+        <span>&middot;</span>
+        <span>{{ minutes }} min read</span>
       </div>
-      {% endif %}
     </div>
   </header>
 
@@ -50,19 +62,19 @@ layout: default
       <div class="post-navigation">
         {% if prev_article %}
         <a href="{{ prev_article.url | relative_url }}" class="nav-link nav-prev">
-          <span class="nav-label">&larr; Previous</span>
+          <span class="nav-label">← Previous</span>
           <span class="nav-title">{{ prev_article.title | truncate: 50 }}</span>
         </a>
         {% endif %}
         {% if next_article %}
         <a href="{{ next_article.url | relative_url }}" class="nav-link nav-next">
-          <span class="nav-label">Next &rarr;</span>
+          <span class="nav-label">Next →</span>
           <span class="nav-title">{{ next_article.title | truncate: 50 }}</span>
         </a>
         {% endif %}
       </div>
       <div class="back-home">
-        <a href="{{ '/' | relative_url }}">&larr; Back to all posts</a>
+        <a href="{{ '/' | relative_url }}">← back to all posts</a>
       </div>
     </div>
   </footer>

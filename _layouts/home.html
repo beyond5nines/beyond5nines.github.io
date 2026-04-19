@@ -4,19 +4,30 @@ layout: default
 
 <section class="hero">
   <div class="container">
-    <div class="hero-content">
-      <h1 class="hero-title">beyond<span class="highlight" style="color: #00FF00;">5</span>nines<span class="blink" style="animation: blink 1s step-end infinite; color: #e4e4e7;">_</span></h1>
-      <p class="hero-description"><strong>beyond5nines</strong> is a field notes blog for engineers who build and run production systems. The name is a reminder that real SRE work happens beyond the uptime dashboard — in the failures, the investigations, and the fixes that never show up in an SLA report. Each post starts with a real incident and works through to the fix. No theory without a production problem behind it.</p>
+    <div class="hero-prompt">
+      <span class="shell">$</span>
+      <span>cat /etc/motd<span class="blink">_</span></span>
     </div>
-    <div class="hero-stats">
-      <div class="stat">
-        <span class="stat-number">{{ site.articles | size }}</span>
-        <span class="stat-label">Articles</span>
+    <h1 class="hero-title">beyond<span class="highlight">5</span>nines</h1>
+    <p class="hero-description">
+      Field notes for engineers who build and run production systems.
+      Each post starts with a <strong>real incident</strong> and works through to the fix.
+      No theory without a production problem behind it.
+    </p>
+    <div class="hero-meta">
+      <div class="hero-stat">
+        <span class="val">{{ site.articles | size }}</span>
+        <span class="lbl">articles</span>
       </div>
-      <div class="stat">
+      <div class="hero-stat">
         {% assign all_cats = site.articles | map: "categories" | flatten | uniq %}
-        <span class="stat-number">{{ all_cats | size }}</span>
-        <span class="stat-label">Topics</span>
+        <span class="val">{{ all_cats | size }}</span>
+        <span class="lbl">topics</span>
+      </div>
+      <div class="hero-stat">
+        {% assign series_list = site.articles | map: "series" | uniq | compact %}
+        <span class="val">{{ series_list | size }}</span>
+        <span class="lbl">series</span>
       </div>
     </div>
   </div>
@@ -25,8 +36,8 @@ layout: default
 <section class="posts-section">
   <div class="container">
     <div class="section-header">
+      <p class="section-label">// investigations</p>
       <h2>Series</h2>
-      <p>Posts grouped by investigation</p>
     </div>
 
     {% assign sorted_articles = site.articles | sort: "date" | reverse %}
@@ -39,36 +50,61 @@ layout: default
       {% assign series_posts = episode_posts | where: "series", series_name | sort: "date" %}
       <div class="series-group">
         <div class="series-group-header">
+          <span class="series-tag">series</span>
           <h3>{{ series_name }}</h3>
           {% if series_index %}
-          <a href="{{ series_index.url | relative_url }}" class="series-index-link">All parts &rarr;</a>
+          <a href="{{ series_index.url | relative_url }}" class="series-index-link">all parts →</a>
           {% endif %}
         </div>
-        <div class="posts-grid">
-          {% for post in series_posts %}
-          <article class="post-card">
-            <div class="post-card-content">
-              <div class="post-meta">
-                <time datetime="{{ post.date | date_to_xmlschema }}">
-                  {{ post.date | date: "%B %d, %Y" }}
-                </time>
-                {% if post.categories.size > 0 %}
-                <span class="post-category">{{ post.categories | first | upcase }}</span>
-                {% endif %}
-              </div>
-              <h3 class="post-title">
-                <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
-              </h3>
-              <p class="post-excerpt">
-                {{ post.excerpt | strip_html | truncate: 180 }}
-              </p>
-              <a href="{{ post.url | relative_url }}" class="read-more">
-                Read article <span class="arrow">&rarr;</span>
-              </a>
+
+        {% if series_index %}
+        <article class="post-card pinned">
+          <div class="post-card-content">
+            <div class="post-meta">
+              <span class="pin-badge">INDEX</span>
+              <time datetime="{{ series_index.date | date_to_xmlschema }}">
+                {{ series_index.date | date: "%Y-%m-%d" }}
+              </time>
+              {% for category in series_index.categories %}
+              <span class="post-category">{{ category | upcase }}</span>
+              {% endfor %}
             </div>
-          </article>
-          {% endfor %}
-        </div>
+            <h3 class="post-title">
+              <a href="{{ series_index.url | relative_url }}">{{ series_index.title }}</a>
+            </h3>
+            <p class="post-excerpt">
+              {{ series_index.excerpt | strip_html | truncate: 160 }}
+            </p>
+            <a href="{{ series_index.url | relative_url }}" class="read-more">
+              <span class="arrow">→</span>
+            </a>
+          </div>
+        </article>
+        {% endif %}
+
+        {% for post in series_posts %}
+        <article class="post-card">
+          <div class="post-card-content">
+            <div class="post-meta">
+              <time datetime="{{ post.date | date_to_xmlschema }}">
+                {{ post.date | date: "%Y-%m-%d" }}
+              </time>
+              {% for category in post.categories %}
+              <span class="post-category">{{ category | upcase }}</span>
+              {% endfor %}
+            </div>
+            <h3 class="post-title">
+              <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+            </h3>
+            <p class="post-excerpt">
+              {{ post.excerpt | strip_html | truncate: 160 }}
+            </p>
+            <a href="{{ post.url | relative_url }}" class="read-more">
+              <span class="arrow">→</span>
+            </a>
+          </div>
+        </article>
+        {% endfor %}
       </div>
     {% endfor %}
 
@@ -78,37 +114,35 @@ layout: default
         <div class="series-group-header">
           <h3>Standalone</h3>
         </div>
-        <div class="posts-grid">
-          {% for post in standalone_posts %}
-          <article class="post-card">
-            <div class="post-card-content">
-              <div class="post-meta">
-                <time datetime="{{ post.date | date_to_xmlschema }}">
-                  {{ post.date | date: "%B %d, %Y" }}
-                </time>
-                {% if post.categories.size > 0 %}
-                <span class="post-category">{{ post.categories | first | upcase }}</span>
-                {% endif %}
-              </div>
-              <h3 class="post-title">
-                <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
-              </h3>
-              <p class="post-excerpt">
-                {{ post.excerpt | strip_html | truncate: 180 }}
-              </p>
-              <a href="{{ post.url | relative_url }}" class="read-more">
-                Read article <span class="arrow">&rarr;</span>
-              </a>
+        {% for post in standalone_posts %}
+        <article class="post-card">
+          <div class="post-card-content">
+            <div class="post-meta">
+              <time datetime="{{ post.date | date_to_xmlschema }}">
+                {{ post.date | date: "%Y-%m-%d" }}
+              </time>
+              {% for category in post.categories %}
+              <span class="post-category">{{ category | upcase }}</span>
+              {% endfor %}
             </div>
-          </article>
-          {% endfor %}
-        </div>
+            <h3 class="post-title">
+              <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+            </h3>
+            <p class="post-excerpt">
+              {{ post.excerpt | strip_html | truncate: 160 }}
+            </p>
+            <a href="{{ post.url | relative_url }}" class="read-more">
+              <span class="arrow">→</span>
+            </a>
+          </div>
+        </article>
+        {% endfor %}
       </div>
     {% endif %}
 
     {% if site.articles.size == 0 %}
     <div class="no-posts">
-      <p>No posts yet. Check back soon!</p>
+      <p>No posts yet. Check back soon.</p>
     </div>
     {% endif %}
   </div>
@@ -119,8 +153,8 @@ layout: default
 <section class="categories-section">
   <div class="container">
     <div class="section-header">
+      <p class="section-label">// explore</p>
       <h2>Topics</h2>
-      <p>Explore by category</p>
     </div>
     <div class="categories-list">
       {% for cat in all_cats %}
