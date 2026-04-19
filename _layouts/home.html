@@ -43,7 +43,9 @@ layout: default
     {% assign sorted_articles = site.articles | sort: "date" | reverse %}
     {% assign series_indices = sorted_articles | where: "pinned", true %}
     {% assign episode_posts = sorted_articles | where_exp: "post", "post.pinned != true" %}
-    {% assign series_names = episode_posts | map: "series" | uniq | where_exp: "s", "s != ''" %}
+    {% assign episode_series = episode_posts | map: "series" | where_exp: "s", "s != ''" %}
+    {% assign index_series = series_indices | map: "series" | where_exp: "s", "s != ''" %}
+    {% assign series_names = episode_series | concat: index_series | uniq %}
 
     {% for series_name in series_names %}
       {% assign series_index = series_indices | where: "series", series_name | first %}
