@@ -173,13 +173,6 @@ Stage 3 — What happened before S3 Shuffle:
 
 Over-partitioning made it worse: 200 sort buckets forces more merge passes, more intermediate writes, more disk consumed per record.
 
-> The manual parsing above is now packaged as **[`analyze_shuffle`](https://github.com/beyond5nines/brahmagupta)** — an open source CLI tool that runs all four steps in one command and outputs the same partition map, compression comparison, and tuning recommendations shown here.
->
-> ```bash
-> pip install ".[lz4]"
-> analyze-shuffle shuffle_98_37726_0.data
-> ```
-
 ### What the Analysis Is Telling Us
 
 We now had two concrete problems the files were pointing at — neither of which was visible in the Glue console.
@@ -209,6 +202,44 @@ The job was running on 10 G.2X workers. It wasn't undersized. The failure was ha
 S3 Shuffle fixed the failure. But it also handed us something AWS never did: the shuffle artifacts, in a place we could actually read them. The over-partitioning and the codec mismatch were always there. We just couldn't see them until the files were somewhere we could look.
 
 The gap between "compression is enabled" and "compression is doing anything useful" doesn't show up in any Glue metric. It shows up when you open the files.
+
+---
+
+## analyze_shuffle — Open Source CLI
+
+The four manual parsing steps above are now packaged as **[`analyze_shuffle`](https://github.com/beyond5nines/brahmagupta)**, part of the [brahmagupta](https://github.com/beyond5nines/brahmagupta) open source project. One command replaces all the scripts:
+
+```bash
+pip install ".[lz4]"
+analyze-shuffle shuffle_98_37726_0.data
+```
+
+Sample output:
+
+```
+====================================================================
+SHUFFLE FILE ANALYSIS: shuffle_98_37726_0.data
+====================================================================
+
+  .data   :         28,114 bytes  (27.46 KB)
+  .index  :            584 bytes  (0.57 KB)
+  Format  : LZ4Block
+
+  Total partitions  : 72
+  Non-empty         : 39
+  Empty             : 33  (46% wasted slots)
+
+  Codec                        Compressed     Ratio
+  ----------------------------------------------------
+  Gzip level-6                    142,048    71.0%
+  Zlib level-9 (≈ZSTD)            141,182    70.6%
+  LZ4 block (measured)            158,001    79.0%
+
+  CRITICAL: 46% of partitions are empty.
+  Recommendation: set spark.sql.shuffle.partitions=40
+```
+
+It works on any Spark shuffle file — AWS Glue, Databricks, or on-prem. No assumptions about the data inside.
 
 ---
 
