@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Look Ma, No Servers! AWS Glue and the 'No Space Left on Device' Trap"
+title: "Look Ma, No Servers! 'No Space Left on Device' Trap"
 date: 2026-04-11 12:00:00 -0000
 categories: aws glue serverless spark
 series: Look Ma! no servers
@@ -9,7 +9,7 @@ redirect_from:
   - /look-ma-no-servers-02/
 ---
 
-## The 48-Minute Lie
+## The 48-Minute Silent Faliure
 
 Our product Glue job looked healthy for 48 minutes and 59 seconds. Progress metrics moving. No anomalies in the console. Then Slack lit up.
 
