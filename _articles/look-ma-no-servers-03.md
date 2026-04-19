@@ -205,13 +205,13 @@ The gap between "compression is enabled" and "compression is doing anything usef
 
 ---
 
-## analyze_shuffle — Open Source CLI
+## scan — Open Source CLI
 
-The four manual parsing steps above are now packaged as **[`analyze_shuffle`](https://github.com/beyond5nines/brahmagupta)**, part of the [brahmagupta](https://github.com/beyond5nines/brahmagupta) open source project. One command replaces all the scripts:
+The four manual parsing steps above are now packaged as **[`scan`](https://github.com/beyond5nines/brahmagupta)**, part of the [brahmagupta](https://github.com/beyond5nines/brahmagupta) open source project. One command replaces all the scripts:
 
 ```bash
 pip install ".[lz4]"
-analyze-shuffle shuffle_98_37726_0.data
+scan shuffle_98_37726_0.data
 ```
 
 Sample output:
@@ -249,4 +249,4 @@ It works on any Spark shuffle file — AWS Glue, Databricks, or on-prem. No assu
 - [Spark Adaptive Query Execution](https://spark.apache.org/docs/latest/sql-performance-tuning.html#adaptive-query-execution)
 - [Spark Compression and Serialization](https://spark.apache.org/docs/latest/configuration.html#compression-and-serialization)
 - [Look Ma, No Servers! Part 01 — Subnet IP Exhaustion](/look-ma-no-servers-01/)
-- [brahmagupta — analyze_shuffle CLI tool](https://github.com/beyond5nines/brahmagupta)
+- [brahmagupta — scan CLI tool](https://github.com/beyond5nines/brahmagupta)
