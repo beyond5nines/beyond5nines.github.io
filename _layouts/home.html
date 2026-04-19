@@ -6,7 +6,7 @@ layout: default
   <div class="container">
     <div class="hero-prompt">
       <span class="shell">$</span>
-      <span>cat /etc/motd<span class="blink">_</span></span>
+      <span id="hero-cmd"></span><span class="blink">_</span>
     </div>
     <h1 class="hero-title">beyond<span class="highlight">5</span>nines</h1>
     <p class="hero-description">
@@ -164,5 +164,46 @@ layout: default
   </div>
 </section>
 {% endif %}
+
+<script>
+(function () {
+  const cmds = [
+    "cat /etc/motd",
+    "tail -f /var/log/app/error.log",
+    "kubectl get pods --all-namespaces | grep CrashLoopBackOff",
+    "df -h | grep -v tmpfs",
+    "aws glue get-job-runs --job-name product-etl --max-results 1",
+    "journalctl -u worker.service -f --since '10 min ago'",
+  ];
+  const el = document.getElementById("hero-cmd");
+  if (!el) return;
+
+  let ci = 0, ci_char = 0, deleting = false;
+  const TYPE_MS = 60, DELETE_MS = 30, PAUSE_MS = 1800, START_MS = 400;
+
+  function tick() {
+    const cmd = cmds[ci];
+    if (!deleting) {
+      el.textContent = cmd.slice(0, ++ci_char);
+      if (ci_char === cmd.length) {
+        deleting = true;
+        setTimeout(tick, PAUSE_MS);
+      } else {
+        setTimeout(tick, TYPE_MS);
+      }
+    } else {
+      el.textContent = cmd.slice(0, --ci_char);
+      if (ci_char === 0) {
+        deleting = false;
+        ci = (ci + 1) % cmds.length;
+        setTimeout(tick, START_MS);
+      } else {
+        setTimeout(tick, DELETE_MS);
+      }
+    }
+  }
+  setTimeout(tick, START_MS);
+})();
+</script>
 
 {{ content }}
