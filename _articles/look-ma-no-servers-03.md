@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "'No Space Left on Device' Trap"
+title: "No Space Left on Device — Trap"
 date: 2026-04-11 12:00:00 -0000
 categories: aws glue serverless spark
 series: Look Ma! no servers
