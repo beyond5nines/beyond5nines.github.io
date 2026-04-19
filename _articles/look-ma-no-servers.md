@@ -21,17 +21,17 @@ Each post in this series follows the same pattern: a production failure that see
 
 ## Posts in This Series
 
-### Part 1: [Subnet IP Exhaustion — The Investigation](/look-ma-no-servers-01/)
-**The problem:** Glue jobs failing with "The specified subnet does not have enough free addresses" — even though our math said we had capacity.
+### Part 1: [Subnet IP Exhaustion — Investigation](/look-ma-no-servers-01/)
+**The problem:** Glue jobs failing with "The specified subnet does not have enough free IP addresses" — even though our math said we had capacity.
 
 **The root cause:** AWS Glue's ENI lifecycle extends far beyond job completion. ENIs remain attached for 60+ minutes after jobs finish, silently consuming IPs. Every job category shared one /26. The launcher was blind.
 
 ---
 
-### Part 2: [Subnet IP Exhaustion — The Fix](/look-ma-no-servers-02/)
+### Part 2: [Subnet IP Exhaustion — Fix](/look-ma-no-servers-02/)
 **The fix:** Blast radius isolation via subnet splitting, plus an adaptive Airflow sensor with a rolling-max threshold backed by DynamoDB that queries actual ENI state before launching.
 
-**The results:** Zero IP exhaustion failures over 90 days. 12 sensor-blocked launches, all recovered within the 10-minute window.
+**The results:** Zero IP exhaustion related failures.
 
 ---
 
