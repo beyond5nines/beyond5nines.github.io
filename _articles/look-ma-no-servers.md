@@ -58,4 +58,5 @@ If you've ever stared at a Glue failure wondering why AWS won't just *tell you* 
 
 ---
 
+
 *Follow along as we document the operational realities of running Glue at scale — the gaps AWS doesn't fill, and the signals you have to build yourself.*
