@@ -13,6 +13,7 @@
   --green-dim: #00cc33;
   --green-glow: rgba(0,255,65,0.15);
   --green-subtle: rgba(0,255,65,0.06);
+  --green-bloom: rgba(0,255,65,0.4);
   --amber: #ffb020;
   --cyan: #22d3ee;
   --red: #ef4444;
@@ -43,7 +44,7 @@ body {
   min-height: 100vh;
 }
 
-/* Scanlines overlay */
+/* Scanlines overlay - enhanced */
 body::after {
   content: '';
   position: fixed;
@@ -54,9 +55,43 @@ body::after {
     0deg,
     transparent,
     transparent 2px,
-    rgba(0,0,0,0.03) 2px,
-    rgba(0,0,0,0.03) 4px
+    rgba(0,0,0,0.08) 2px,
+    rgba(0,0,0,0.08) 4px
   );
+}
+
+/* Animated scanline sweep */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0,255,65,0.03) 50%,
+    transparent 100%
+  );
+  height: 100px;
+  animation: scanline-sweep 8s linear infinite;
+  opacity: 0.5;
+}
+
+@keyframes scanline-sweep {
+  0% { transform: translateY(-100px); }
+  100% { transform: translateY(100vh); }
+}
+
+/* CRT vignette and glow */
+html::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9997;
+  background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.3) 100%);
+  mix-blend-mode: multiply;
 }
 
 ::selection {
@@ -122,6 +157,7 @@ img {
 
 .logo .highlight {
   color: var(--green);
+  text-shadow: 0 0 8px var(--green-glow);
 }
 
 .blink {
@@ -152,10 +188,13 @@ img {
 .nav-links a:hover {
   color: var(--green);
   background: var(--green-subtle);
+  text-shadow: 0 0 8px var(--green-glow);
+  box-shadow: 0 0 8px var(--green-glow);
 }
 
 .nav-links a.active {
   color: var(--green);
+  text-shadow: 0 0 8px var(--green-glow);
 }
 
 /* ===== Hero Section ===== */
@@ -166,6 +205,7 @@ img {
   overflow: hidden;
 }
 
+/* Matrix rain canvas */
 .hero::before {
   content: '';
   position: absolute;
@@ -174,10 +214,21 @@ img {
     radial-gradient(ellipse 600px 300px at 20% 50%, var(--green-subtle), transparent),
     radial-gradient(ellipse 400px 250px at 80% 30%, rgba(34,211,238,0.03), transparent);
   pointer-events: none;
+  z-index: 1;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.15;
 }
 
 .hero .container {
   position: relative;
+  z-index: 2;
 }
 
 .hero-prompt {
@@ -192,6 +243,22 @@ img {
 
 .hero-prompt .shell {
   color: var(--green);
+  text-shadow: 0 0 8px var(--green-glow);
+  font-weight: 700;
+}
+
+.hero-prompt .blink {
+  display: inline-block;
+  width: 8px;
+  height: 16px;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green-bloom);
+  animation: cursor-blink 1s step-end infinite;
+}
+
+@keyframes cursor-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.2; }
 }
 
 .hero-title {
@@ -206,7 +273,22 @@ img {
 
 .hero-title .highlight {
   color: var(--green);
-  text-shadow: 0 0 20px var(--green-glow);
+  text-shadow:
+    0 0 10px var(--green-bloom),
+    0 0 20px var(--green-glow),
+    0 0 40px var(--green-glow);
+  animation: hero-five-flicker 6s infinite;
+}
+
+@keyframes hero-five-flicker {
+  0%, 85%, 88%, 91%, 100% {
+    opacity: 1;
+    text-shadow: 0 0 10px var(--green-bloom), 0 0 20px var(--green-glow), 0 0 40px var(--green-glow);
+  }
+  86% { opacity: 0.3; text-shadow: none; }
+  87% { opacity: 1; text-shadow: 0 0 4px var(--green-glow); }
+  89% { opacity: 0.15; text-shadow: none; }
+  90% { opacity: 1; text-shadow: 0 0 20px var(--green-bloom), 0 0 40px var(--green-glow); }
 }
 
 .hero-description {
@@ -509,12 +591,24 @@ img {
   gap: 6px;
 }
 
+.post-breadcrumb::before {
+  content: '~/';
+  color: var(--green);
+  font-weight: 700;
+}
+
+.post-breadcrumb .separator {
+  color: var(--text-dim);
+}
+
 .post-breadcrumb a {
   color: var(--green);
+  transition: all 0.15s;
 }
 
 .post-breadcrumb a:hover {
   text-decoration: underline;
+  text-shadow: 0 0 8px var(--green-glow);
 }
 
 .post-header .post-meta {
