@@ -8,7 +8,7 @@ redirect_from:
   - /2026/04/10/look-ma-no-servers-02/
 ---
 
-## The 48-Minute Silent Faliure
+## The 48-Minute Silent Failure
 
 Our product Glue job looked healthy for 48 minutes and 59 seconds. Progress metrics moving. No anomalies in the console. Then Slack lit up.
 

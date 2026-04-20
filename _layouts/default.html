@@ -35,6 +35,7 @@
       </a>
       <div class="nav-links">
         <a href="{{ '/' | relative_url }}" {% if page.url == '/' %}class="active"{% endif %}>home</a>
+        <a href="{{ '/about/' | relative_url }}" {% if page.url == '/about/' %}class="active"{% endif %}>about</a>
         <a href="https://www.linkedin.com/in/rahul-nyc/" target="_blank" rel="noopener">linkedin</a>
         <a href="https://github.com/beyond5nines" target="_blank" rel="noopener">github</a>
       </div>
@@ -55,6 +56,7 @@
         <div class="footer-links">
           <a href="https://github.com/beyond5nines" target="_blank" rel="noopener">github</a>
           <a href="https://www.linkedin.com/in/rahul-nyc/" target="_blank" rel="noopener">linkedin</a>
+          <a href="{{ '/feed.xml' | relative_url }}" target="_blank">rss</a>
           <a href="mailto:beyond5nines@gmail.com">email</a>
         </div>
       </div>
