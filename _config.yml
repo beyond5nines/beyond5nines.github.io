@@ -1,6 +1,6 @@
 # Site settings
 title: beyond5nines
-description: Deep dives into cloud infrastructure, reliability engineering, and building resilient systems.
+description: "Field notes for engineers who build and run production systems. Each post starts with a real incident and works through to the fix."
 author: Rahul Sharma
 url: "https://beyond5nines.com"
 baseurl: ""
@@ -11,6 +11,10 @@ plugins:
   - jekyll-feed
   - jekyll-seo-tag
   - jekyll-redirect-from
+  - jekyll-sitemap
+
+# Google Search Console verification
+# google_site_verification: PASTE_YOUR_CODE_HERE
 
 # Excerpt settings
 excerpt_separator: <!--more-->
