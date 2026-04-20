@@ -6,9 +6,9 @@
   --bg-surface: #161a1f;
   --border: #1e2329;
   --border-hover: #2a3038;
-  --text: #e8eaed;
-  --text-muted: #8b9099;
-  --text-dim: #5c6370;
+  --text: #f0f2f5;
+  --text-muted: #b8bfc9;
+  --text-dim: #7a8390;
   --green: #00ff41;
   --green-dim: #00cc33;
   --green-glow: rgba(0,255,65,0.15);
@@ -274,21 +274,43 @@ img {
 .hero-title .highlight {
   color: var(--green);
   text-shadow:
-    0 0 10px var(--green-bloom),
-    0 0 20px var(--green-glow),
-    0 0 40px var(--green-glow);
+    0 0 8px var(--green),
+    0 0 20px var(--green-bloom),
+    0 0 40px var(--green-glow),
+    0 0 80px var(--green-glow);
   animation: hero-five-flicker 6s infinite;
 }
 
 @keyframes hero-five-flicker {
   0%, 85%, 88%, 91%, 100% {
     opacity: 1;
-    text-shadow: 0 0 10px var(--green-bloom), 0 0 20px var(--green-glow), 0 0 40px var(--green-glow);
+    text-shadow: 0 0 8px var(--green), 0 0 20px var(--green-bloom), 0 0 40px var(--green-glow), 0 0 80px var(--green-glow);
   }
-  86% { opacity: 0.3; text-shadow: none; }
+  86% { opacity: 0.25; text-shadow: none; }
   87% { opacity: 1; text-shadow: 0 0 4px var(--green-glow); }
-  89% { opacity: 0.15; text-shadow: none; }
-  90% { opacity: 1; text-shadow: 0 0 20px var(--green-bloom), 0 0 40px var(--green-glow); }
+  89% { opacity: 0.1; text-shadow: none; }
+  90% { opacity: 1; text-shadow: 0 0 8px var(--green), 0 0 40px var(--green-bloom), 0 0 80px var(--green-glow); }
+}
+
+/* ===== Series title letter flicker ===== */
+.letter-flicker {
+  color: var(--green);
+  text-shadow:
+    0 0 8px var(--green),
+    0 0 20px var(--green-bloom),
+    0 0 40px var(--green-glow);
+  animation: letter-flicker 7s infinite;
+}
+
+@keyframes letter-flicker {
+  0%, 82%, 85%, 88%, 100% {
+    opacity: 1;
+    text-shadow: 0 0 8px var(--green), 0 0 20px var(--green-bloom), 0 0 40px var(--green-glow);
+  }
+  83% { opacity: 0.2; text-shadow: none; }
+  84% { opacity: 1; text-shadow: 0 0 4px var(--green-glow); }
+  86% { opacity: 0.1; text-shadow: none; }
+  87% { opacity: 1; text-shadow: 0 0 12px var(--green), 0 0 40px var(--green-bloom); }
 }
 
 .hero-description {

@@ -1,6 +1,7 @@
 ---
 layout: post
 title: "Everything is Awesome!"
+title_display: 'Everything is <span class="letter-flicker">A</span>wesome!'
 date: 2026-04-18 12:00:00 -0000
 categories: neo4j apoc observability
 series: Everything is Awesome!

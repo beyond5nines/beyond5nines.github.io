@@ -1,6 +1,7 @@
 ---
 layout: post
 title: "Look Ma, No Servers!"
+title_display: 'Look <span class="letter-flicker">M</span>a, No Servers!'
 date: 2026-04-08 12:00:00 -0000
 categories: aws glue serverless
 series: Look Ma! no servers
