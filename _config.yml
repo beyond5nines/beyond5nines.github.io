@@ -42,6 +42,9 @@ defaults:
     values:
       layout: post
 
+# Open Graph default image
+logo: /assets/images/og-default.svg
+
 # Contact
 email: beyond5nines@gmail.com
 linkedin_url: https://www.linkedin.com/in/rahul-nyc/

@@ -1,0 +1,53 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#06080a"/>
+
+  <!-- Vignette -->
+  <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
+    <stop offset="0%" stop-color="#06080a" stop-opacity="0"/>
+    <stop offset="100%" stop-color="#000000" stop-opacity="0.6"/>
+  </radialGradient>
+  <rect width="1200" height="630" fill="url(#vignette)"/>
+
+  <!-- Scanlines -->
+  <pattern id="scanlines" x="0" y="0" width="1200" height="4" patternUnits="userSpaceOnUse">
+    <rect width="1200" height="2" fill="transparent"/>
+    <rect y="2" width="1200" height="2" fill="rgba(0,0,0,0.12)"/>
+  </pattern>
+  <rect width="1200" height="630" fill="url(#scanlines)"/>
+
+  <!-- Green glow blob -->
+  <radialGradient id="glow" cx="30%" cy="50%" r="40%">
+    <stop offset="0%" stop-color="#00ff41" stop-opacity="0.06"/>
+    <stop offset="100%" stop-color="#00ff41" stop-opacity="0"/>
+  </radialGradient>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- Terminal prompt line -->
+  <text x="80" y="210" font-family="'JetBrains Mono', 'Menlo', monospace" font-size="22" fill="#5c6370">$ cat /etc/motd</text>
+
+  <!-- Site name -->
+  <text font-family="'JetBrains Mono', 'Menlo', monospace" font-size="96" font-weight="700" letter-spacing="-3" x="80" y="340">
+    <tspan fill="#f0f2f5">beyond</tspan><tspan fill="#00ff41" filter="url(#green-glow)">5</tspan><tspan fill="#f0f2f5">nines</tspan>
+  </text>
+
+  <!-- Green glow filter for 5 -->
+  <defs>
+    <filter id="green-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Tagline -->
+  <text x="80" y="410" font-family="'Space Grotesk', system-ui, sans-serif" font-size="26" fill="#7a8390">Field notes for engineers who build and run production systems.</text>
+
+  <!-- Divider -->
+  <line x1="80" y1="460" x2="400" y2="460" stroke="#1e2329" stroke-width="1"/>
+
+  <!-- URL -->
+  <text x="80" y="500" font-family="'JetBrains Mono', 'Menlo', monospace" font-size="20" fill="#5c6370">beyond5nines.com</text>
+</svg>
