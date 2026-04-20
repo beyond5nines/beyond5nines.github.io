@@ -35,7 +35,7 @@ Each post in this series follows the same pattern: a production failure that see
 
 ---
 
-### Part 3: [The "No Space Left on Device" Trap](/look-ma-no-servers-03/)
+### Part 3: [No Space Left on Device — Trap](/look-ma-no-servers-03/)
 **The problem:** Glue jobs failing after 48 minutes with "No space left on device" — on workers that should have had plenty of disk.
 
 **The root cause:** Spark shuffle spill consumes local disk faster than expected when partition counts are wrong and compression is ineffective.
