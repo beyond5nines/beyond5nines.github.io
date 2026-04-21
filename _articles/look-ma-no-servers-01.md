@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "The specified subnet does not have enough free addresses to satisfy the request - Investigation"
+title: "The specified subnet does not have enough free addresses to satisfy the request — Investigation"
 date: 2026-04-09 12:00:00 -0000
 categories: aws glue serverless
 series: Look Ma! no servers
