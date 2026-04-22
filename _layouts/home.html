@@ -71,6 +71,9 @@ layout: default
               <span class="post-category">{{ category | upcase }}</span>
               {% endfor %}
             </div>
+            <h3 class="post-title">
+              <a href="{{ series_index.url | relative_url }}">{{ series_index.title }}</a>
+            </h3>
             <p class="post-excerpt">
               {{ series_index.excerpt | strip_html | truncate: 160 }}
             </p>
