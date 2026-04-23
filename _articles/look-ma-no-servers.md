@@ -10,54 +10,60 @@ redirect_from:
   - /2026/04/08/look-ma-no-servers/
 ---
 
-## The Series
+Remember yelling "Look ma, no hands!" right before eating pavement? That's our AWS Glue story.
 
-**"Serverless moves the servers out of sight, not out of your problem."**
+We adopted serverless expecting less infrastructure work. Instead, we spent months debugging Linux OOM killers, YARN memory limits, and orphaned ENIs — without visibility into actual servers.
 
-This is a series about the hidden constraints of AWS Glue and other "serverless" services — the ones that don't show up in the console, aren't mentioned in the documentation, and only reveal themselves when something breaks at 7AM.
+The pitch was clear: no patching, no capacity planning, no servers to babysit. Hand the undifferentiated heavy lifting to AWS and focus on the data. We bought it.
 
-Each post in this series follows the same pattern: a production failure that seemed impossible, the investigation that uncovered the root cause, and the observability we built to make sure it never happens again.
+What we got was the same constraints with none of the visibility. The servers are still there — AWS just hides them behind a managed abstraction. ENIs still expire on an undocumented schedule. Disk still runs out in ways the console won't show you. Memory still gets killed at limits that don't appear in the documentation.
+
+**Serverless moves the servers out of sight, not out of your problem.**
+
+This series documents what we found: the undocumented behaviors, the production failures they caused, and the observability we had to build ourselves to stop being surprised by a service that holds all the signals and shares almost none of them.
 
 ---
 
-## Posts in This Series
+## In This Series
 
 ### Part 1: [Subnet IP Exhaustion — Investigation](/look-ma-no-servers-01/)
-**The problem:** Glue jobs failing with "The specified subnet does not have enough free IP addresses" — even though our math said we had capacity.
 
-**The root cause:** AWS Glue's ENI lifecycle extends far beyond job completion. ENIs remain attached for 60+ minutes after jobs finish, silently consuming IPs. Every job category shared one /26. The launcher was blind.
+Our daily batch jobs started failing at 7:03 AM with "The specified subnet does not have enough free IP addresses." Our math showed we had capacity. The subnet disagreed.
+
+The root cause: AWS Glue's ENI lifecycle extends 60+ minutes past job completion — undocumented, invisible in the console, and compounding with every run. Every job category shared one /26. The launcher was blind to actual subnet state.
 
 ---
 
 ### Part 2: [Subnet IP Exhaustion — Fix](/look-ma-no-servers-02/)
-**The fix:** Blast radius isolation via subnet splitting, plus an adaptive Airflow sensor with a rolling-max threshold backed by DynamoDB that queries actual ENI state before launching.
 
-**The results:** Zero IP exhaustion related failures.
+The fix wasn't more IPs. It was feedback.
+
+Blast radius isolation via subnet splitting — critical batch, non-critical batch, and ad-hoc jobs each trapped in their own /26. Then an adaptive Airflow sensor backed by DynamoDB that reads actual ENI state before each launch, with a rolling-max buffer that learns from observed cleanup lag rather than assuming a static window.
+
+**Result:** Zero IP exhaustion failures in 90 days. 12 sensor-blocked launches that self-recovered within 10 minutes, no manual intervention.
 
 ---
 
 ### Part 3: [No Space Left on Device — Trap](/look-ma-no-servers-03/)
-**The problem:** Glue jobs failing after 48 minutes with "No space left on device" — on workers that should have had plenty of disk.
 
-**The root cause:** Spark shuffle spill consumes local disk faster than expected when partition counts are wrong and compression is ineffective.
+A G.2X job ran healthy for 48 minutes and 59 seconds, then died: `No space left on device`. On workers with 128 GB of local disk each. The Glue console showed nothing — no disk utilization metric, no spill volume, no warning before the wall.
 
-**The fix:** Right-sizing partitions, switching to ZSTD compression, and building disk utilization observability that AWS doesn't provide.
+S3 Shuffle stopped the bleeding. But it also handed us something AWS never did: the shuffle artifacts themselves, sitting in S3, readable. The files exposed what was actually wrong — 46% empty partitions from an unconfigured default, and a compression codec doing zero work on UUID data where LZ4 can find no repeated patterns. The failure wasn't about disk size. It was about what was being written to it.
 
 ---
 
-## The Pattern
+## What Every Post Covers
 
-Every post in this series follows the same shape:
+Each post follows the same shape:
 
-1. **The failure** — what broke, when, and how it presented
-2. **The investigation** — the queries, the metrics, the things we had to build to see what was happening
+1. **The failure** — what broke, when, how it presented
+2. **The investigation** — the queries and signals we had to build to see what was happening
 3. **The root cause** — the undocumented behavior or hidden constraint
 4. **The fix** — architectural changes and observability improvements
-5. **The results** — before/after metrics proving the fix worked
+5. **The results** — before/after metrics proving the fix held
 
 If you've ever stared at a Glue failure wondering why AWS won't just *tell you* what's wrong, this series is for you.
 
 ---
 
-
-*Follow along as we document the operational realities of running Glue at scale — the gaps AWS doesn't fill, and the signals you have to build yourself.*
+*Every managed service has an observability gap. Finding it is part of operating the service.*
