@@ -12,7 +12,7 @@ The name is a reminder that real reliability work happens beyond the uptime dash
 
 ## Who writes this
 
-I'm Rahul, a Senior Engineering Manager based in New Jersey. I work on distributed systems, data infrastructure, and cloud-native architectures. The posts here come from real incidents — things that broke in production, what we found when we looked, and what we changed to stop them from happening again.
+I'm Rahul ,running SRE and data engineering practice based in New Jersey. I work on distributed systems, data infrastructure, and cloud-native architectures. The posts here come from real incidents — things that broke in production, what we found when we looked, and what we changed to stop them from happening again.
 
 ---
 
@@ -23,7 +23,6 @@ Every post follows the same structure: the failure, the investigation, the fix. 
 Current series:
 
 - **[Look Ma, No Servers!](/look-ma-no-servers/)** — AWS Glue, serverless ETL, and the hidden constraints behind the abstraction
-- **[Everything is Awesome!](/everything-is-awesome/)** — Neo4j, APOC, and observability in graph databases
 
 ---
 
