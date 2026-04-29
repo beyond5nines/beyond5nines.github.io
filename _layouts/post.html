@@ -4,6 +4,7 @@ layout: default
 
 <article class="post">
   <header class="post-header">
+    <canvas class="post-matrix-canvas" id="post-matrix-canvas"></canvas>
     <div class="container container-narrow">
       <div class="post-breadcrumb">
         <a href="{{ '/' | relative_url }}">home</a>
@@ -39,11 +40,49 @@ layout: default
     </div>
   </header>
 
-  <div class="post-content">
-    <div class="container container-narrow">
-      {{ content }}
+  {% if page.series %}
+    {% assign series_all = site.articles | where: "series", page.series | sort: "date" %}
+    {% assign series_index_post = series_all | where: "pinned", true | first %}
+    {% assign series_episodes = series_all | where_exp: "p", "p.pinned != true" %}
+
+    <div class="post-content post-content-with-sidebar">
+      <div class="container post-sidebar-layout">
+        <div class="post-main-body">
+          {{ content }}
+        </div>
+        <aside class="series-sidebar" aria-label="Series navigation">
+          <div class="series-sidebar-inner">
+            <div class="series-sidebar-label">// {{ page.series | downcase }}</div>
+            {% if series_index_post %}
+            <a href="{{ series_index_post.url | relative_url }}"
+               class="series-sidebar-item{% if series_index_post.url == page.url %} current{% endif %}">
+              <span class="ssb-num">00</span>
+              <span class="ssb-dot"></span>
+              <span class="ssb-title">Series Index</span>
+            </a>
+            {% endif %}
+            {% assign ep_num = 0 %}
+            {% for ep in series_episodes %}
+              {% assign ep_num = ep_num | plus: 1 %}
+              <a href="{{ ep.url | relative_url }}"
+                 class="series-sidebar-item{% if ep.url == page.url %} current{% endif %}">
+                <span class="ssb-num">0{{ ep_num }}</span>
+                <span class="ssb-dot"></span>
+                <span class="ssb-title">{{ ep.title | truncate: 38 }}</span>
+              </a>
+            {% endfor %}
+          </div>
+        </aside>
+      </div>
     </div>
-  </div>
+
+  {% else %}
+    <div class="post-content">
+      <div class="container container-narrow">
+        {{ content }}
+      </div>
+    </div>
+  {% endif %}
 
   <footer class="post-footer">
     <div class="container container-narrow">
@@ -79,3 +118,97 @@ layout: default
     </div>
   </footer>
 </article>
+
+<script>
+/* ── Matrix rain on post header ── */
+(function () {
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) return;
+  var canvas = document.getElementById('post-matrix-canvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789ABCDEF';
+  var cols, drops;
+  var iv = null;
+
+  function resize() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    cols = Math.floor(canvas.width / 18);
+    drops = [];
+    for (var i = 0; i < cols; i++) drops[i] = Math.random() * -40;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function draw() {
+    ctx.fillStyle = 'rgba(6,8,10,0.06)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.font = '13px JetBrains Mono, monospace';
+    for (var i = 0; i < drops.length; i++) {
+      var ch = chars[Math.floor(Math.random() * chars.length)];
+      var r = Math.random();
+      ctx.fillStyle = r > 0.97 ? '#ffffff' : r > 0.85 ? '#00ff41' : '#00882a';
+      ctx.fillText(ch, i * 18, drops[i] * 18);
+      if (drops[i] * 18 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i] += 0.45;
+    }
+  }
+
+  function start() { if (!iv) iv = setInterval(draw, 55); }
+  function stop()  { if (iv) { clearInterval(iv); iv = null; } }
+  start();
+  document.addEventListener('visibilitychange', function () {
+    document.hidden ? stop() : start();
+  });
+})();
+
+/* ── Copy buttons on code blocks ── */
+(function () {
+  function flash(btn, label) {
+    btn.textContent = label;
+    btn.classList.add('copied');
+    setTimeout(function () {
+      btn.textContent = 'copy';
+      btn.classList.remove('copied');
+    }, 2000);
+  }
+
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  document.querySelectorAll('.post-content pre, .post-main-body pre').forEach(function (pre) {
+    var wrap = document.createElement('div');
+    wrap.className = 'code-block-wrap';
+    pre.parentNode.insertBefore(wrap, pre);
+    wrap.appendChild(pre);
+    var btn = document.createElement('button');
+    btn.className = 'copy-code-btn';
+    btn.textContent = 'copy';
+    btn.setAttribute('aria-label', 'Copy code');
+    btn.addEventListener('click', function () {
+      var text = pre.innerText || pre.textContent;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+          .then(function () { flash(btn, 'copied!'); })
+          .catch(function () {
+            flash(btn, fallbackCopy(text) ? 'copied!' : 'copy failed');
+          });
+      } else {
+        flash(btn, fallbackCopy(text) ? 'copied!' : 'copy failed');
+      }
+    });
+    wrap.appendChild(btn);
+  });
+})();
+</script>

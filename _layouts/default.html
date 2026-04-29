@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}?v=5">
+  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}?v=7">
   <style>
     @keyframes blink {
       0%, 100% { opacity: 1; }
@@ -28,6 +28,57 @@
   {% seo %}
 </head>
 <body>
+
+  <!-- Search data injected for client-side search.
+       Filters: drops published:false and explicit searchable:false.
+       Wrapped in application/json so a literal </script> in any field
+       can't break out of the inline block. -->
+  {% assign searchable_posts = site.articles | where_exp: "a", "a.published != false" | where_exp: "a", "a.searchable != false" %}
+  <script type="application/json" id="site-posts-data">
+    [
+      {% for article in searchable_posts %}
+      {
+        "title": {{ article.title | jsonify }},
+        "url": {{ article.url | relative_url | jsonify }},
+        "series": {{ article.series | default: "" | jsonify }},
+        "categories": {{ article.categories | join: " " | jsonify }},
+        "excerpt": {{ article.excerpt | strip_html | truncate: 140 | jsonify }}
+      }{% unless forloop.last %},{% endunless %}
+      {% endfor %}
+    ]
+  </script>
+  <script>
+    window.SITE_POSTS = JSON.parse(
+      document.getElementById('site-posts-data').textContent
+    );
+  </script>
+
+  <!-- Search overlay -->
+  <div class="search-overlay" id="search-overlay" aria-hidden="true" role="dialog" aria-label="Search">
+    <div class="search-backdrop" id="search-backdrop"></div>
+    <div class="search-modal">
+      <div class="search-input-row">
+        <span class="search-slash">/</span>
+        <input
+          type="text"
+          class="search-input"
+          id="search-input"
+          placeholder="search posts…"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Search posts"
+        >
+        <kbd class="search-esc-hint">esc</kbd>
+      </div>
+      <div class="search-results" id="search-results" role="listbox"></div>
+      <div class="search-footer">
+        <div class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> navigate</div>
+        <div class="search-hint"><kbd>↵</kbd> open</div>
+        <div class="search-hint"><kbd>/</kbd> or <kbd>esc</kbd> close</div>
+      </div>
+    </div>
+  </div>
+
   <nav class="navbar">
     <div class="container">
       <a href="{{ '/' | relative_url }}" class="logo">
@@ -36,6 +87,10 @@
       <div class="nav-links">
         <a href="{{ '/' | relative_url }}" {% if page.url == '/' %}class="active"{% endif %}>home</a>
         <a href="{{ '/about/' | relative_url }}" {% if page.url == '/about/' %}class="active"{% endif %}>about</a>
+        <button class="nav-search-btn" id="nav-search-btn" aria-label="Search" title="Search (/)">
+          <span class="nav-search-icon">⌕</span>
+          <span class="nav-search-label">/</span>
+        </button>
       </div>
     </div>
   </nav>
@@ -60,16 +115,161 @@
       </div>
     </div>
   </footer>
+
   <script>
+    /* ── Favicon blink ── */
     (function() {
-      const on = '{{ "/assets/images/favicon-on.svg" | relative_url }}';
-      const off = '{{ "/assets/images/favicon-off.svg" | relative_url }}';
-      const link = document.querySelector('link[rel="icon"]');
-      let state = true;
-      setInterval(function() {
-        state = !state;
-        link.href = state ? on : off;
-      }, 500);
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduce) return;
+      var on  = '{{ "/assets/images/favicon-on.svg"  | relative_url }}';
+      var off = '{{ "/assets/images/favicon-off.svg" | relative_url }}';
+      var link = document.querySelector('link[rel="icon"]');
+      var state = true;
+      var iv = null;
+      function start() { if (!iv) iv = setInterval(function () {
+        state = !state; link.href = state ? on : off;
+      }, 500); }
+      function stop() { if (iv) { clearInterval(iv); iv = null; } }
+      start();
+      document.addEventListener('visibilitychange', function () {
+        document.hidden ? stop() : start();
+      });
+    })();
+
+    /* ── Search overlay ── */
+    (function () {
+      var overlay   = document.getElementById('search-overlay');
+      var backdrop  = document.getElementById('search-backdrop');
+      var input     = document.getElementById('search-input');
+      var results   = document.getElementById('search-results');
+      var navBtn    = document.getElementById('nav-search-btn');
+      var posts     = window.SITE_POSTS || [];
+      var focusIdx  = 0;
+      var isOpen    = false;
+
+      function open() {
+        isOpen = true;
+        overlay.classList.add('open');
+        overlay.setAttribute('aria-hidden', 'false');
+        input.value = '';
+        focusIdx = 0;
+        renderResults('');
+        setTimeout(function () { input.focus(); }, 50);
+      }
+
+      function close() {
+        isOpen = false;
+        overlay.classList.remove('open');
+        overlay.setAttribute('aria-hidden', 'true');
+        input.blur();
+      }
+
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function highlight(text, query) {
+        var safe = escapeHtml(text);
+        if (!query) return safe;
+        var escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return safe.replace(new RegExp('(' + escaped + ')', 'gi'), '<mark>$1</mark>');
+      }
+
+      function renderResults(query) {
+        var q = query.trim().toLowerCase();
+        var matches = q === ''
+          ? posts
+          : posts.filter(function (p) {
+              return p.title.toLowerCase().indexOf(q) !== -1
+                  || p.categories.toLowerCase().indexOf(q) !== -1
+                  || p.excerpt.toLowerCase().indexOf(q) !== -1
+                  || p.series.toLowerCase().indexOf(q) !== -1;
+            });
+
+        if (matches.length === 0) {
+          results.innerHTML = '<div class="search-empty">$ grep — 0 results for &ldquo;'
+            + escapeHtml(query) + '&rdquo;</div>';
+          return;
+        }
+
+        results.innerHTML = matches.map(function (p, i) {
+          var titleHl = highlight(p.title, query);
+          var excerptHl = q ? highlight(p.excerpt, query) : '';
+          var seriesMeta = p.series
+            ? '<span class="sr-series">' + escapeHtml(p.series) + '</span>'
+            : '';
+          var catMeta = p.categories
+            ? p.categories.split(' ').map(function(c){
+                return '<span class="sr-cat">' + escapeHtml(c) + '</span>';
+              }).join('')
+            : '';
+          return '<a href="' + escapeHtml(p.url) + '" class="search-result-item'
+            + (i === 0 ? ' focused' : '') + '" data-idx="' + i + '" role="option">'
+            + '<div class="sr-body">'
+            + '<div class="sr-title">' + titleHl + '</div>'
+            + '<div class="sr-meta">' + seriesMeta + catMeta + '</div>'
+            + (excerptHl ? '<div class="sr-excerpt">&hellip;' + excerptHl + '&hellip;</div>' : '')
+            + '</div>'
+            + '<span class="sr-arrow">→</span>'
+            + '</a>';
+        }).join('');
+
+        focusIdx = 0;
+        updateFocus();
+      }
+
+      function updateFocus() {
+        var items = results.querySelectorAll('.search-result-item');
+        items.forEach(function (el, i) {
+          el.classList.toggle('focused', i === focusIdx);
+        });
+      }
+
+      function moveFocus(dir) {
+        var items = results.querySelectorAll('.search-result-item');
+        if (!items.length) return;
+        focusIdx = (focusIdx + dir + items.length) % items.length;
+        updateFocus();
+      }
+
+      function openFocused() {
+        var items = results.querySelectorAll('.search-result-item');
+        if (items[focusIdx]) items[focusIdx].click();
+      }
+
+      input.addEventListener('input', function () {
+        focusIdx = 0;
+        renderResults(this.value);
+      });
+
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowDown')  { e.preventDefault(); moveFocus(1); }
+        if (e.key === 'ArrowUp')    { e.preventDefault(); moveFocus(-1); }
+        if (e.key === 'Enter')      { e.preventDefault(); openFocused(); }
+        if (e.key === 'Escape')     { close(); }
+      });
+
+      document.addEventListener('keydown', function (e) {
+        var t = document.activeElement;
+        var typing = t && (
+          t.tagName === 'INPUT' ||
+          t.tagName === 'TEXTAREA' ||
+          t.isContentEditable
+        );
+        if (e.key === '/' && !typing) {
+          e.preventDefault();
+          isOpen ? close() : open();
+        }
+        if (e.key === 'Escape' && isOpen) close();
+      });
+
+      if (navBtn) navBtn.addEventListener('click', function () { isOpen ? close() : open(); });
+      if (backdrop) backdrop.addEventListener('click', close);
     })();
   </script>
 </body>

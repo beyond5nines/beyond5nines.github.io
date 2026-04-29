@@ -60,7 +60,7 @@ layout: default
         </div>
 
         {% if series_index %}
-        <article class="post-card pinned">
+        <article class="post-card pinned" data-cats="{{ series_index.categories | join: ' ' }}">
           <div class="post-card-content">
             <div class="post-meta">
               <span class="pin-badge">INDEX</span>
@@ -85,7 +85,7 @@ layout: default
         {% endif %}
 
         {% for post in series_posts %}
-        <article class="post-card">
+        <article class="post-card" data-cats="{{ post.categories | join: ' ' }}">
           <div class="post-card-content">
             <div class="post-meta">
               <time datetime="{{ post.date | date_to_xmlschema }}">
@@ -117,7 +117,7 @@ layout: default
           <h3>Standalone</h3>
         </div>
         {% for post in standalone_posts %}
-        <article class="post-card">
+        <article class="post-card" data-cats="{{ post.categories | join: ' ' }}">
           <div class="post-card-content">
             <div class="post-meta">
               <time datetime="{{ post.date | date_to_xmlschema }}">
@@ -155,21 +155,34 @@ layout: default
 <section class="categories-section">
   <div class="container">
     <div class="section-header">
-      <p class="section-label">// explore</p>
+      <p class="section-label">// filter by topic</p>
       <h2>Topics</h2>
     </div>
-    <div class="categories-list">
+    <div class="categories-list" id="cat-filter-list">
+      <button class="category-tag active" data-cat="all" onclick="filterByCategory('all')">
+        all
+        <span class="count">{{ site.articles | size }}</span>
+      </button>
       {% for cat in all_cats %}
-      <a href="#" class="category-tag">{{ cat }}</a>
+      {% assign cat_count = site.articles | where_exp: "a", "a.categories contains cat" | size %}
+      <button class="category-tag" data-cat="{{ cat }}" onclick="filterByCategory('{{ cat }}')">
+        {{ cat }}
+        <span class="count">{{ cat_count }}</span>
+      </button>
       {% endfor %}
+    </div>
+    <div class="cat-no-results" id="cat-no-results" style="display:none">
+      <span class="cat-no-results-prompt">$</span> grep -r "<span id="cat-no-query"></span>" — 0 results
     </div>
   </div>
 </section>
 {% endif %}
 
 <script>
+/* ── Hero typewriter ── */
 (function () {
-  const cmds = [
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var cmds = [
     "cat /etc/motd",
     "tail -f /var/log/app/error.log",
     "kubectl get pods --all-namespaces | grep CrashLoopBackOff",
@@ -177,35 +190,67 @@ layout: default
     "aws glue get-job-runs --job-name product-etl --max-results 1",
     "journalctl -u worker.service -f --since '10 min ago'",
   ];
-  const el = document.getElementById("hero-cmd");
+  var el = document.getElementById("hero-cmd");
   if (!el) return;
-
-  let ci = 0, ci_char = 0, deleting = false;
-  const TYPE_MS = 60, DELETE_MS = 30, PAUSE_MS = 1800, START_MS = 400;
-
+  if (reduce) { el.textContent = cmds[0]; return; }
+  var ci = 0, ci_char = 0, deleting = false;
+  var TYPE_MS = 60, DELETE_MS = 30, PAUSE_MS = 1800, START_MS = 400;
+  var pendingTimer = null;
   function tick() {
-    const cmd = cmds[ci];
+    pendingTimer = null;
+    if (document.hidden) { return; }   // resume on visibilitychange
+    var cmd = cmds[ci];
     if (!deleting) {
       el.textContent = cmd.slice(0, ++ci_char);
-      if (ci_char === cmd.length) {
-        deleting = true;
-        setTimeout(tick, PAUSE_MS);
-      } else {
-        setTimeout(tick, TYPE_MS);
-      }
+      if (ci_char === cmd.length) { deleting = true; pendingTimer = setTimeout(tick, PAUSE_MS); }
+      else pendingTimer = setTimeout(tick, TYPE_MS);
     } else {
       el.textContent = cmd.slice(0, --ci_char);
-      if (ci_char === 0) {
-        deleting = false;
-        ci = (ci + 1) % cmds.length;
-        setTimeout(tick, START_MS);
-      } else {
-        setTimeout(tick, DELETE_MS);
-      }
+      if (ci_char === 0) { deleting = false; ci = (ci + 1) % cmds.length; pendingTimer = setTimeout(tick, START_MS); }
+      else pendingTimer = setTimeout(tick, DELETE_MS);
     }
   }
-  setTimeout(tick, START_MS);
+  pendingTimer = setTimeout(tick, START_MS);
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden && pendingTimer === null) {
+      pendingTimer = setTimeout(tick, START_MS);
+    }
+  });
 })();
+
+/* ── Category filter ── */
+function filterByCategory(cat) {
+  /* update button states */
+  document.querySelectorAll('#cat-filter-list .category-tag').forEach(function (btn) {
+    btn.classList.toggle('active', btn.dataset.cat === cat);
+  });
+
+  /* show/hide post cards */
+  var cards = document.querySelectorAll('.post-card');
+  var visible = 0;
+  cards.forEach(function (card) {
+    var cats = (card.dataset.cats || '').split(' ');
+    var show = cat === 'all' || cats.indexOf(cat) !== -1;
+    card.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+
+  /* show/hide empty series-group headers */
+  document.querySelectorAll('.series-group').forEach(function (grp) {
+    var anyVisible = Array.from(grp.querySelectorAll('.post-card')).some(function (c) {
+      return c.style.display !== 'none';
+    });
+    grp.style.display = anyVisible ? '' : 'none';
+  });
+
+  /* no-results message */
+  var noRes = document.getElementById('cat-no-results');
+  var noQ   = document.getElementById('cat-no-query');
+  if (noRes) {
+    noRes.style.display = visible === 0 ? 'block' : 'none';
+    if (noQ) noQ.textContent = cat;
+  }
+}
 </script>
 
 {{ content }}
