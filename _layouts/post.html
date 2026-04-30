@@ -3,16 +3,78 @@ layout: default
 ---
 
 <article class="post">
-  <header class="post-header">
+
+  {% if page.pinned %}
+  {%- comment -%}── SERIES INDEX PAGE ──{%- endcomment -%}
+
+  {% assign series_episodes = site.articles | where: "series", page.series | where_exp: "p", "p.pinned != true" | sort: "date" %}
+  {% assign ep_count = series_episodes | size %}
+  {% assign all_cats = site.articles | where: "series", page.series | map: "categories" | flatten | uniq %}
+
+  <header class="post-header series-index-header">
+    <div class="container container-narrow">
+      <div class="post-breadcrumb">
+        <a href="{{ '/' | relative_url }}">home</a>
+        <span>/</span>
+        <span>{{ page.series }}</span>
+      </div>
+      <div class="series-index-badge">series</div>
+      <h1 class="post-title">{% if page.title_display %}{{ page.title_display }}{% else %}{{ page.title }}{% endif %}</h1>
+      <div class="series-index-stats">
+        <div class="series-index-stat">
+          <span class="val">{{ ep_count }}</span>
+          <span class="lbl">parts</span>
+        </div>
+        <div class="series-index-stat">
+          {% assign words_total = 0 %}
+          {% for ep in series_episodes %}
+            {% assign words_total = words_total | plus: ep.content.size %}
+          {% endfor %}
+          {% assign min_total = words_total | divided_by: 1500 %}
+          {% if min_total < 1 %}{% assign min_total = 1 %}{% endif %}
+          <span class="val">~{{ min_total }}</span>
+          <span class="lbl">min total</span>
+        </div>
+        <div class="series-index-stat">
+          <span class="val">{{ all_cats | size }}</span>
+          <span class="lbl">topics</span>
+        </div>
+        <div class="series-index-stat">
+          <span class="val">{{ page.date | date: "%Y-%m-%d" }}</span>
+          <span class="lbl">started</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="post-content series-index-content">
+    <div class="container container-narrow">
+      {{ content }}
+    </div>
+  </div>
+
+  {% else %}
+  {%- comment -%}── EPISODE POST ──{%- endcomment -%}
+
+  {% if page.series %}
+    {% assign series_all      = site.articles | where: "series", page.series | sort: "date" %}
+    {% assign series_idx_post = series_all | where: "pinned", true | first %}
+    {% assign series_episodes = series_all | where_exp: "p", "p.pinned != true" %}
+    {% assign ep_position     = 0 %}
+    {% for ep in series_episodes %}
+      {% if ep.url == page.url %}{% assign ep_position = forloop.index %}{% endif %}
+    {% endfor %}
+  {% endif %}
+
+  <header class="post-header episode-header">
     <canvas class="post-matrix-canvas" id="post-matrix-canvas"></canvas>
     <div class="container container-narrow">
       <div class="post-breadcrumb">
         <a href="{{ '/' | relative_url }}">home</a>
         <span>/</span>
         {% if page.series %}
-          {% assign series_index = site.articles | where: "pinned", true | where: "series", page.series | first %}
-          {% if series_index %}
-            <a href="{{ series_index.url | relative_url }}">{{ page.series }}</a>
+          {% if series_idx_post %}
+            <a href="{{ series_idx_post.url | relative_url }}">{{ page.series }}</a>
           {% else %}
             <span>{{ page.series }}</span>
           {% endif %}
@@ -20,6 +82,12 @@ layout: default
         {% endif %}
         <span>{{ page.title | truncate: 40 }}</span>
       </div>
+      {% if page.series and ep_position > 0 %}
+      <div class="episode-label">
+        <span class="ep-num">part {{ ep_position }}</span>
+        {{ page.series }}
+      </div>
+      {% endif %}
       <h1 class="post-title">{% if page.title_display %}{{ page.title_display }}{% else %}{{ page.title }}{% endif %}</h1>
       <div class="post-page-meta">
         <time datetime="{{ page.date | date_to_xmlschema }}">
@@ -41,47 +109,44 @@ layout: default
   </header>
 
   {% if page.series %}
-    {% assign series_all = site.articles | where: "series", page.series | sort: "date" %}
-    {% assign series_index_post = series_all | where: "pinned", true | first %}
-    {% assign series_episodes = series_all | where_exp: "p", "p.pinned != true" %}
-
-    <div class="post-content post-content-with-sidebar">
-      <div class="container post-sidebar-layout">
-        <div class="post-main-body">
-          {{ content }}
-        </div>
-        <aside class="series-sidebar" aria-label="Series navigation">
-          <div class="series-sidebar-inner">
-            <div class="series-sidebar-label">// {{ page.series | downcase }}</div>
-            {% if series_index_post %}
-            <a href="{{ series_index_post.url | relative_url }}"
-               class="series-sidebar-item{% if series_index_post.url == page.url %} current{% endif %}">
-              <span class="ssb-num">00</span>
-              <span class="ssb-dot"></span>
-              <span class="ssb-title">Series Index</span>
-            </a>
-            {% endif %}
-            {% assign ep_num = 0 %}
-            {% for ep in series_episodes %}
-              {% assign ep_num = ep_num | plus: 1 %}
-              <a href="{{ ep.url | relative_url }}"
-                 class="series-sidebar-item{% if ep.url == page.url %} current{% endif %}">
-                <span class="ssb-num">0{{ ep_num }}</span>
-                <span class="ssb-dot"></span>
-                <span class="ssb-title">{{ ep.title | truncate: 38 }}</span>
-              </a>
-            {% endfor %}
-          </div>
-        </aside>
-      </div>
-    </div>
-
-  {% else %}
-    <div class="post-content">
-      <div class="container container-narrow">
+  <div class="post-content post-content-with-sidebar">
+    <div class="container post-sidebar-layout">
+      <div class="post-main-body">
         {{ content }}
       </div>
+      <aside class="series-sidebar" aria-label="Series navigation">
+        <div class="series-sidebar-inner">
+          <div class="series-sidebar-label">// {{ page.series | downcase }}</div>
+          {% if series_idx_post %}
+          <a href="{{ series_idx_post.url | relative_url }}"
+             class="series-sidebar-item{% if series_idx_post.url == page.url %} current{% endif %}">
+            <span class="ssb-num">00</span>
+            <span class="ssb-dot"></span>
+            <span class="ssb-title">Series Index</span>
+          </a>
+          {% endif %}
+          {% assign ep_num = 0 %}
+          {% for ep in series_episodes %}
+            {% assign ep_num = ep_num | plus: 1 %}
+            <a href="{{ ep.url | relative_url }}"
+               class="series-sidebar-item{% if ep.url == page.url %} current{% endif %}">
+              <span class="ssb-num">0{{ ep_num }}</span>
+              <span class="ssb-dot"></span>
+              <span class="ssb-title">{{ ep.title | truncate: 38 }}</span>
+            </a>
+          {% endfor %}
+        </div>
+      </aside>
     </div>
+  </div>
+  {% else %}
+  <div class="post-content">
+    <div class="container container-narrow">
+      {{ content }}
+    </div>
+  </div>
+  {% endif %}
+
   {% endif %}
 
   <footer class="post-footer">
@@ -117,10 +182,11 @@ layout: default
       </div>
     </div>
   </footer>
+
 </article>
 
 <script>
-/* ── Matrix rain on post header ── */
+/* ── Matrix rain on episode post header only ── */
 (function () {
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduce) return;
@@ -132,9 +198,9 @@ layout: default
   var iv = null;
 
   function resize() {
-    canvas.width = canvas.offsetWidth;
+    canvas.width  = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
-    cols = Math.floor(canvas.width / 18);
+    cols  = Math.floor(canvas.width / 18);
     drops = [];
     for (var i = 0; i < cols; i++) drops[i] = Math.random() * -40;
   }
@@ -147,7 +213,7 @@ layout: default
     ctx.font = '13px JetBrains Mono, monospace';
     for (var i = 0; i < drops.length; i++) {
       var ch = chars[Math.floor(Math.random() * chars.length)];
-      var r = Math.random();
+      var r  = Math.random();
       ctx.fillStyle = r > 0.97 ? '#ffffff' : r > 0.85 ? '#00ff41' : '#00882a';
       ctx.fillText(ch, i * 18, drops[i] * 18);
       if (drops[i] * 18 > canvas.height && Math.random() > 0.975) drops[i] = 0;
