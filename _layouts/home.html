@@ -70,6 +70,10 @@ layout: default
               {% for category in series_index.categories %}
               <span class="post-category">{{ category | upcase }}</span>
               {% endfor %}
+              {% assign words = series_index.content | number_of_words %}
+              {% assign minutes = words | divided_by: 250 %}
+              {% if minutes < 1 %}{% assign minutes = 1 %}{% endif %}
+              <span class="post-reading-time">&middot; {{ minutes }} min read</span>
             </div>
             <h3 class="post-title">
               <a href="{{ series_index.url | relative_url }}">{{ series_index.title }}</a>
@@ -94,6 +98,10 @@ layout: default
               {% for category in post.categories %}
               <span class="post-category">{{ category | upcase }}</span>
               {% endfor %}
+              {% assign words = post.content | number_of_words %}
+              {% assign minutes = words | divided_by: 250 %}
+              {% if minutes < 1 %}{% assign minutes = 1 %}{% endif %}
+              <span class="post-reading-time">&middot; {{ minutes }} min read</span>
             </div>
             <h3 class="post-title">
               <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
@@ -126,6 +134,10 @@ layout: default
               {% for category in post.categories %}
               <span class="post-category">{{ category | upcase }}</span>
               {% endfor %}
+              {% assign words = post.content | number_of_words %}
+              {% assign minutes = words | divided_by: 250 %}
+              {% if minutes < 1 %}{% assign minutes = 1 %}{% endif %}
+              <span class="post-reading-time">&middot; {{ minutes }} min read</span>
             </div>
             <h3 class="post-title">
               <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
