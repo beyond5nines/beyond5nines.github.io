@@ -52,6 +52,12 @@ S3 Shuffle stopped the bleeding. But it also handed us something AWS never did: 
 
 ---
 
+### Part 4: [No Space Left on Device — Fix](/look-ma-no-servers-04/)
+
+Post 03 identified the trap: 46% empty shuffle partitions from an unconfigured default and a compression codec doing zero work on UUID data. This post applies the fix — five Spark configuration changes that cut shuffle bytes written to S3 by 50%, from 267.9 GB to 133.0 GB per run. No infrastructure changes, no scaling. Just defaults that were always wrong for the workload.
+
+---
+
 ## What Every Post Covers
 
 Each post follows the same shape:
