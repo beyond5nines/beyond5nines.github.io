@@ -19,18 +19,23 @@ APOC — Awesome Procedures On Cypher — is one of the first things you install
 
 The operational experience is a different story.
 
-This is a series about what APOC procedures actually cost when they run on a production cluster — the page cache impact they don't surface, the heap pressure they don't report, and the monitoring gaps that keep you blind until something else breaks.
+This is a series about what APOC procedures actually cost when they run on a production cluster — the page cache evictions they don't surface, the heap pressure that spills into GC pauses, the Raft replication lag that follows, and the monitoring gaps that keep you blind until something else breaks.
+
+For two weeks, our followers fired daily Raft replication alerts — 28,103 entries behind, nearly double the 15,000 threshold. Clients hit `TransactionIdTrackerException: Database 'graphdb' not up to the requested version` on reads. The debug logs pointed at replication lag. The query logs pointed at APOC. Nobody connected them until we aligned timestamps manually.
 
 ---
 
 ## Posts in This Series
 
 ### Part 1: [The Tree That Ate the Cache](/everything-is-awesome-01/)
-**The problem:** An API endpoint builds a tree from graph paths. One second per call. 53 calls in 31 minutes. Each call evicts 1,750 pages from cache. The cache never recovers.
+**The problem:** An API endpoint builds a tree from graph paths. One second per call. No alerts fire. No slow-query threshold is breached. Behind the scenes, each call evicts 1,750 pages from cache and pressures GC. Over an hour, Raft replication lag spikes to 8,000 records. Followers start rejecting reads: `TransactionIdTrackerException: Database 'graphdb' not up to the requested version`. The monitoring saw fast reads. The cluster saw a sustained eviction engine — for two weeks.
 
-**The root cause:** `apoc.convert.toTree` materializes all paths in heap before processing — but the real damage is the unbounded variable-length traversal feeding it, which turns every call into a scattered read across the page cache.
+**The root cause:** `apoc.convert.toTree` materializes all paths in heap before processing — but the real damage is the unbounded variable-length traversal feeding it, which turns every call into a scattered read that evicts the hot working set, stalls GC, and starves Raft replication.
 
 **The fix:** Depth-limited traversals, replacing the procedure with a custom Cypher projection, and concurrency caps on the calling endpoint.
+
+![Raft replication lag correlated with toTree execution windows over 2 weeks](/assets/images/everything-is-awesome/raft-lag-correlation.png)
+*Daily Raft alerts (28,103 entries, threshold 15,000) aligned to toTree execution windows in the query log.*
 
 ---
 
