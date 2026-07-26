@@ -1,20 +1,24 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Tech stack: Jekyll (GitHub Pages), Liquid templates, Kramdown markdown
+  Styling: Custom CSS in assets/css/
+  Blog posts: _articles/ collection (not _posts/), uses "series" field for grouping
+  Conventions: title_display for HTML-rich titles, pinned: true for series index pages
+  Domain: Personal technical blog (beyond5nines.github.io)
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+rules:
+  proposal:
+    - Keep proposals concise — under 500 words
+    - Check _layouts/ and _includes/ for existing implementations before proposing new ones
+  design:
+    - Write for a non-technical audience — no code snippets, line numbers, or implementation jargon
+    - Keep under 30 lines, focus on decisions and trade-offs in plain English
+    - Use simple bullet points over detailed technical prose
+    - Skip design.md entirely for trivial single-file changes
+  specs:
+    - Keep scenarios practical — focus on visible UI outcomes
+    - Don't over-specify for cosmetic or styling changes
+  tasks:
+    - Each task should be completable in under 30 minutes
+    - Include a verification task (local Jekyll build) for any template change

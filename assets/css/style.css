@@ -500,6 +500,12 @@ img {
   letter-spacing: 0.03em;
 }
 
+.post-reading-time {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
 .post-title {
   font-size: 1.05rem;
   font-weight: 600;
