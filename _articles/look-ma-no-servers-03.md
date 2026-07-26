@@ -118,7 +118,7 @@ print(f"Partitions: {len(offsets)-1}, non-empty: {non_empty}, empty: {empty}")
 Partitions: 72, non-empty: 39, empty: 33
 ```
 
-**Both files had the same partition layout: 33 of 72 partitions completely empty.** `spark.sql.shuffle.partitions` defaults to 200 — we'd never configured it. Spark was managing 72 sort buckets across both shuffles, regardless of how much data was in them. Despite the 285x size difference between the two files, the over-partitioning penalty was identical.
+**Both files had the same partition layout: 33 of 72 partitions completely empty.** Spark's standard default for `spark.sql.shuffle.partitions` is 200, but the `.index` file — a write-side artifact — proves the shuffle was written with 72 partition slots. That number matches exactly what [AWS prescriptive guidance](https://docs.aws.amazon.com/prescriptive-guidance/latest/tuning-aws-glue-for-apache-spark/parallelize-tasks.html) documents as the target parallelism formula: `(Workers - 1) × cores_per_worker = (10 - 1) × 8 = 72`. We never configured `spark.sql.shuffle.partitions`. Glue appears to override it based on cluster geometry. Regardless of how the number was derived, Spark was managing 72 sort buckets across both shuffles with nearly half of them empty. Despite the 285x size difference between the two files, the over-partitioning penalty was identical.
 
 ### Step 3: Is LZ4 actually compressing anything?
 
@@ -154,7 +154,7 @@ The shuffle files weren't the proximate cause. The accumulated spill files were.
 
 ```
 Stage 1 — Shuffle write:
-  200 partition slots written, 33/72 empty on both shuffles
+  72 partition slots written, 33 empty on both shuffles
   shuffle_53: 7.85 MB across 39 non-empty partitions
   shuffle_98: 27.46 KB across 39 non-empty partitions
 
@@ -170,17 +170,17 @@ Stage 3 — What happened before S3 Shuffle:
   are from a successful run.
 ```
 
-Over-partitioning made it worse: 200 sort buckets forces more merge passes, more intermediate writes, more disk consumed per record.
+Over-partitioning made it worse: 72 sort buckets — nearly half empty — forces more merge passes, more intermediate writes, more disk consumed per record.
 
 ### What the Analysis Is Telling Us
 
 We now had two concrete problems the files were pointing at — neither of which was visible in the Glue console.
 
-**Over-partitioning.** We had never configured `spark.sql.shuffle.partitions`, so it was falling back to the default of 200. Spark was managing sort buckets, writing partition headers, and performing merge passes for data that doesn't exist. Every empty partition is wasted disk and wasted CPU.
+**Over-partitioning.** Spark's standard default for `spark.sql.shuffle.partitions` is 200, but the shuffle files prove Glue was writing with 72 — matching the [AWS-documented formula](https://docs.aws.amazon.com/prescriptive-guidance/latest/tuning-aws-glue-for-apache-spark/parallelize-tasks.html) for target parallelism: `(Workers - 1) × cores = 9 × 8 = 72`. We'd never configured it. With 33 of those 72 partitions empty, Spark was managing sort buckets, writing partition headers, and performing merge passes for data that doesn't exist. Every empty partition is wasted disk and wasted CPU.
 
 **Wrong compression codec for the data.** LZ4 worked fine on text-heavy data — 3x on `shuffle_53`. On UUID-heavy `shuffle_98`, it stored blocks completely raw: 0x compression, pure overhead. ZSTD would deliver ~2x compression on UUID strings where LZ4 gives nothing, and ~55% better compression than LZ4 on text data.
 
-The partition tuning, Adaptive Query Execution, and the codec switch are the next set of changes. We'll cover the implementation and results in Part 03.
+The partition tuning, Adaptive Query Execution, and the codec switch are the next set of changes. We'll cover the implementation and results in [Part 04](/look-ma-no-servers-04/).
 
 ---
 
