@@ -6,7 +6,7 @@ categories: aws route53 cloudtrail architecture
 series: "NOERROR, No App"
 ---
 
-*Part 3 of the [NOERROR, No App](./noerror-no-app-intro) series. [Part 1](./the-incident) has the incident that made this necessary.*
+*Part 3 of the [NOERROR, No App](/noerror-no-app-intro/) series. [Part 1](/part1-the-incident/) has the incident that made this necessary.*
 
 ### What we built afterward — and why it wasn't enough
 
@@ -16,7 +16,7 @@ The obvious response to an outage like the one in Part 1 is to get told when inf
 each account:  CloudTrail → EventBridge → Lambda → Slack   (+ DynamoDB change log)
 ```
 
-![One notification pipeline per account — CloudTrail to EventBridge to Lambda to a shared Slack channel, with a DynamoDB change log — replicated in every account. Each copy ages on its own, and the ones with the weakest ownership quietly stop reporting.](./per-account-notification-pipelines.png)
+![One notification pipeline per account — CloudTrail to EventBridge to Lambda to a shared Slack channel, with a DynamoDB change log — replicated in every account. Each copy ages on its own, and the ones with the weakest ownership quietly stop reporting.](/assets/images/per-account-notification-pipelines.png)
 
 Each account had its own trail, an EventBridge rule matching `ChangeResourceRecordSets` and the other mutating calls, its own Lambda parsing those events into Slack, and a DynamoDB table of changes. We started with the accounts involved in the incident and it worked. As we extended the pattern to other teams the account count climbed past ten, and the shape stopped scaling.
 
@@ -41,4 +41,4 @@ Price them against one scenario: ten accounts, roughly 5 GB a month of CloudTrai
 
 Pricing changes, and those figures are illustrative: the useful comparison here is billing shape, not the exact dollar amount. Substitute your own numbers before trusting the ratio, since the gap moves with how much your estate changes versus how much you query. But the shape is the point. Three of the four charge continuously for data arriving. The fourth charges for keeping it and for the questions you actually ask, which in forensic use is a handful a month.
 
-That leaves the boring one. The build itself is in **[Part 4 — The Fix](./the-fix)**.
+That leaves the boring one. The build itself is in **[Part 4 — The Fix](/part4-the-fix/)**.

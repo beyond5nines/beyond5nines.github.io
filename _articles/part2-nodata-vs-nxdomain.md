@@ -6,7 +6,7 @@ categories: aws route53 dns
 series: "NOERROR, No App"
 ---
 
-*Part 2 of the [NOERROR, No App](./noerror-no-app-intro) series. [Part 1](./the-incident) has the incident this comes from — but the failure mode below is general, and worth knowing whether or not you've hit it yet.*
+*Part 2 of the [NOERROR, No App](/noerror-no-app-intro/) series. [Part 1](/part1-the-incident/) has the incident this comes from — but the failure mode below is general, and worth knowing whether or not you've hit it yet.*
 
 An `A` record gets deleted. A DNS lookup against the name *succeeds* — no error, no timeout — and still hands back nothing usable. That gap between "the query worked" and "the app works" is easy to misread, expensive when you do, and only two response codes apart.
 
@@ -90,7 +90,7 @@ Two habits worth keeping. Only one `--lookup-attributes` is allowed per `cloudtr
 
 - [RFC 2308 — Negative Caching of DNS Queries](https://www.rfc-editor.org/rfc/rfc2308.html) — defines NODATA (RCODE `NOERROR` with no answer records) and specifies the negative-cache TTL as `min(SOA record TTL, SOA MINIMUM)`, not the `MINIMUM` field alone.
 - [Logging Amazon Route 53 API calls with AWS CloudTrail](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/logging-using-cloudtrail.html) — CloudTrail records every Route 53 API call, including who made it and from which IP. Three things are easy to conflate: Route 53 is a global service, not a regional one; its management events are recorded as global service events, typically surfaced through `us-east-1`, which is why the lookups here pin that Region; and what you can see depends on where you look — Event History is per account, per Region, 90 days, while a delivered trail depends on that trail's settings, including whether global service events are included.
-- [Get notified when changes are made to Route 53](https://repost.aws/knowledge-center/route53-change-notifications) — the per-account EventBridge-on-`ChangeResourceRecordSets` pattern, the shape of the notification pipelines covered in [Part 3](./why-per-account-pipelines-fail).
+- [Get notified when changes are made to Route 53](https://repost.aws/knowledge-center/route53-change-notifications) — the per-account EventBridge-on-`ChangeResourceRecordSets` pattern, the shape of the notification pipelines covered in [Part 3](/part3-why-per-account-pipelines-fail/).
 
 ### Appendix: reproduce it yourself
 
@@ -162,4 +162,4 @@ The `nslookup` line is the less portable of the two. The `-port=` form works wit
 
 Two things trip people up. Bump the SOA serial on every edit or the reload is a no-op. And keep `@127.0.0.1 -p 5300` on every query: drop it and you are asking the public internet about the real `example.com`, which will answer NODATA for its own reasons and give you a false positive. Check the `SERVER:` line to be sure you queried the lab.
 
-*Next: [Part 3 — Why per-account pipelines don't scale](./why-per-account-pipelines-fail), or back to [Part 1 — The Incident](./the-incident).*
+*Next: [Part 3 — Why per-account pipelines don't scale](/part3-why-per-account-pipelines-fail/), or back to [Part 1 — The Incident](/part1-the-incident/).*
