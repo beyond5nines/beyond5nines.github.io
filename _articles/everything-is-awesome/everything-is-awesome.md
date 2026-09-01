@@ -6,6 +6,7 @@ date: 2026-04-18 12:00:00 -0000
 categories: neo4j apoc observability
 series: Everything is Awesome!
 pinned: true
+excerpt: "A series on what APOC procedures really cost in production: hidden page cache evictions, GC pauses, and replication lag."
 redirect_from:
   - /2026/04/18/everything-is-awesome/
 ---
@@ -45,19 +46,6 @@ The fix: explicit sample limits, label filtering, caching the result application
 Five monitoring layers — application dashboards, Prometheus metrics, APOC's own monitoring procedures, `SHOW TRANSACTIONS`, and the troubleshooting runbook — all missed APOC as a contributor to the February 17 thread exhaustion incident. A single `toTree` call caused 9,001 page faults and consumed 42 seconds of CPU. A wide-open `allowlist=apoc.*` let any client call any procedure. The monitoring saw a one-second read.
 
 The fix: query log pipelines with Vector and VictoriaMetrics, APOC-specific dashboard panels, cumulative page fault alerting by query pattern, tightening the procedure allowlist to an explicit set, and a runbook update that adds cumulative impact analysis alongside single-query triage.
-
----
-
-## What Every Post Covers
-
-Each post follows the same shape:
-
-1. **The call** — what it looks like in your code, and why nobody questioned it
-2. **The cost** — what it actually does to your cluster, measured from production logs
-3. **The blind spot** — what monitoring doesn't tell you, and why
-4. **The fix** — what we changed, and what we'd do differently
-
-If you've ever assumed an APOC procedure was "just a function call" and later found it at the center of a production incident, this series is for you.
 
 ---
 

@@ -1,11 +1,11 @@
 ---
 layout: post
-title: "NOERROR, No App — Part 3: Why per-account pipelines don't scale"
-short_title: "Part 3: Why per-account pipelines don't scale"
+title: "NOERROR, No App — Why per-account pipelines don't scale"
+short_title: "Why per-account pipelines don't scale"
 date: 2026-06-19 12:00:00 -0000
 categories: aws route53 cloudtrail architecture
 series: "NOERROR, No App"
-excerpt: "We built change-notification pipelines, one per account. Past ten accounts the shape stopped scaling — ten Lambda runtimes drifting apart, the same CVE patched ten times, some copies quietly going silent."
+excerpt: "We built one change-pipeline per account. Past ten accounts it stopped scaling — ten runtimes, ten copies of the same CVE."
 redirect_from:
   - /part3-why-per-account-pipelines-fail/
 ---

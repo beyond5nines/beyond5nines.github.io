@@ -1,11 +1,11 @@
 ---
 layout: post
-title: "NOERROR, No App — Part 2: NODATA vs NXDOMAIN, and how to prove it to yourself"
-short_title: "Part 2: NODATA vs NXDOMAIN"
+title: "NOERROR, No App — NODATA vs NXDOMAIN, and how to prove it to yourself"
+short_title: "NODATA vs NXDOMAIN"
 date: 2026-06-18 12:00:00 -0000
 categories: aws route53 dns
 series: "NOERROR, No App"
-excerpt: "NODATA and NXDOMAIN are two response codes apart but mean opposite things. One tells you the name is gone; the other says the query worked — then hands back nothing usable."
+excerpt: "NODATA and NXDOMAIN are two codes apart but mean opposite things: one says gone, the other says empty."
 redirect_from:
   - /part2-nodata-vs-nxdomain/
 ---

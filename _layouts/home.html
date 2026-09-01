@@ -73,7 +73,21 @@ layout: default
     {% assign episode_posts = sorted_articles | where_exp: "post", "post.pinned != true" %}
     {% assign episode_series = episode_posts | map: "series" | where_exp: "s", "s != ''" %}
     {% assign index_series = series_indices | map: "series" | where_exp: "s", "s != ''" %}
-    {% assign series_names = episode_series | concat: index_series | uniq %}
+    {% assign discovered_series_names = episode_series | concat: index_series | uniq %}
+    {% assign desired_series_order = "Look Ma! no servers|Everything is Awesome!|NOERROR, No App" | split: "|" %}
+    {% assign series_names = "" | split: "" %}
+    {% for name in desired_series_order %}
+      {% if discovered_series_names contains name %}
+        {% assign single = name | split: "@@@" %}
+        {% assign series_names = series_names | concat: single %}
+      {% endif %}
+    {% endfor %}
+    {% for name in discovered_series_names %}
+      {% unless series_names contains name %}
+        {% assign single = name | split: "@@@" %}
+        {% assign series_names = series_names | concat: single %}
+      {% endunless %}
+    {% endfor %}
 
     {% for series_name in series_names %}
       {% assign series_index = series_indices | where: "series", series_name | first %}

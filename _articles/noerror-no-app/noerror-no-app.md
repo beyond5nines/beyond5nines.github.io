@@ -5,6 +5,7 @@ date: 2026-06-16 12:00:00 -0000
 categories: aws route53 cloudtrail
 series: "NOERROR, No App"
 pinned: true
+excerpt: "A deleted Route 53 record took the app down for 75 minutes — this series on why cross-account audit needs one home, not N."
 redirect_from:
   - /noerror-no-app-intro/
 ---

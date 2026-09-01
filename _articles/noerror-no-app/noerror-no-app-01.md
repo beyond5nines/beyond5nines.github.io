@@ -1,11 +1,11 @@
 ---
 layout: post
-title: "NOERROR, No App — Part 1: The Incident"
-short_title: "Part 1: The Incident"
+title: "NOERROR, No App — The Incident"
+short_title: "The Incident"
 date: 2026-06-17 12:00:00 -0000
 categories: aws route53 cloudtrail
 series: "NOERROR, No App"
-excerpt: "A deleted Route 53 A record took the app down — but DNS returned NOERROR, not NXDOMAIN. Finding which of three accounts owned the zone cost 75 minutes of hand-searching."
+excerpt: "A deleted Route 53 A record took the app down while DNS returned NOERROR. Finding the owning account cost 75 minutes."
 redirect_from:
   - /part1-the-incident/
 ---

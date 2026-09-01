@@ -4,7 +4,7 @@ title: "No Space Left on Device — Fix"
 date: 2026-04-12 12:00:00 -0000
 categories: aws glue serverless spark
 series: Look Ma! no servers
-excerpt: "S3 Shuffle stopped the crash but revealed 267.9 GB of shuffle data per run. Five Spark configuration changes cut shuffle volume by 87% and brought runtime from 56 minutes to 23."
+excerpt: "S3 Shuffle stopped the crash but revealed 267.9 GB of shuffle data per run. Five config changes cut it 87% and runtime in half."
 redirect_from:
   - /2026/04/12/look-ma-no-servers-04/
 ---

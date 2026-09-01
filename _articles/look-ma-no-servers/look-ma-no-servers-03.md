@@ -4,7 +4,7 @@ title: "No Space Left on Device — Trap"
 date: 2026-04-11 12:00:00 -0000
 categories: aws glue serverless spark
 series: Look Ma! no servers
-excerpt: "A Glue job ran for 48 minutes looking healthy, then crashed on a disk-full error in a filesystem AWS doesn't expose. We moved shuffle to S3, then dug into the files to find what was really happening."
+excerpt: "A Glue job ran 48 minutes looking healthy, then crashed on a disk-full error in a filesystem AWS never exposes."
 redirect_from:
   - /2026/04/10/look-ma-no-servers-02/
 ---

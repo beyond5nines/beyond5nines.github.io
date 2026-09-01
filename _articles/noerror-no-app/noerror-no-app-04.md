@@ -1,12 +1,12 @@
 ---
 layout: post
-title: "NOERROR, No App — Part 4: The Fix"
-short_title: "Part 4: The Fix"
+title: "NOERROR, No App — The Fix"
+short_title: "The Fix"
 date: 2026-06-20 12:00:00 -0000
 categories: aws route53 cloudtrail athena
 series: "NOERROR, No App"
 author: Rahul Sharma
-excerpt: "One org trail, one S3 bucket, one Athena table — replaces N per-account pipelines. Partition projection gives sub-second queries across every account without a crawler or ETL."
+excerpt: "One org trail, one bucket, one Athena table replace N per-account pipelines — sub-second queries, no crawler or ETL."
 redirect_from:
   - /part4-the-fix/
 ---

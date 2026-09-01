@@ -6,6 +6,7 @@ date: 2026-04-08 12:00:00 -0000
 categories: aws glue serverless
 series: Look Ma! no servers
 pinned: true
+excerpt: "Serverless moved the servers out of sight, not out of our problem — a series on the failures AWS Glue's abstraction hid from us."
 redirect_from:
   - /2026/04/08/look-ma-no-servers/
 ---
@@ -55,20 +56,6 @@ S3 Shuffle stopped the bleeding. But it also handed us something AWS never did: 
 ### Part 4: [No Space Left on Device — Fix](/look-ma-no-servers-04/)
 
 Post 03 identified the trap: 46% empty shuffle partitions from an unconfigured default and a compression codec doing zero work on UUID data. This post applies the fix — five Spark configuration changes that cut shuffle bytes written to S3 by 50%, from 267.9 GB to 133.0 GB per run. No infrastructure changes, no scaling. Just defaults that were always wrong for the workload.
-
----
-
-## What Every Post Covers
-
-Each post follows the same shape:
-
-1. **The failure** — what broke, when, how it presented
-2. **The investigation** — the queries and signals we had to build to see what was happening
-3. **The root cause** — the undocumented behavior or hidden constraint
-4. **The fix** — architectural changes and observability improvements
-5. **The results** — before/after metrics proving the fix held
-
-If you've ever stared at a Glue failure wondering why AWS won't just *tell you* what's wrong, this series is for you.
 
 ---
 
