@@ -12,7 +12,7 @@ The name is a reminder that real reliability work happens beyond the uptime dash
 
 ## Who writes this
 
-I'm Rahul ,running SRE and data engineering practice based in New Jersey. I work on distributed systems, data infrastructure, and cloud-native architectures. The posts here come from real incidents — things that broke in production, what we found when we looked, and what we changed to stop them from happening again.
+I'm Rahul, an SRE and data engineer based in New Jersey, working on distributed systems, data infrastructure, and cloud-native architectures. Every post here starts with a real incident — something that broke in production, what we found when we looked, and what we changed to stop it from happening again.
 
 ---
 
