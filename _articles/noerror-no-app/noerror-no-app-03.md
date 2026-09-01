@@ -1,16 +1,18 @@
 ---
 layout: post
 title: "NOERROR, No App — Part 3: Why per-account pipelines don't scale"
+short_title: "Part 3: Why per-account pipelines don't scale"
 date: 2026-06-19 12:00:00 -0000
 categories: aws route53 cloudtrail architecture
 series: "NOERROR, No App"
+excerpt: "We built change-notification pipelines, one per account. Past ten accounts the shape stopped scaling — ten Lambda runtimes drifting apart, the same CVE patched ten times, some copies quietly going silent."
 redirect_from:
   - /part3-why-per-account-pipelines-fail/
 ---
 
 *Part 3 of the [NOERROR, No App](/noerror-no-app/) series. [Part 1](/noerror-no-app-01/) has the incident that made this necessary.*
 
-### What we built afterward — and why it wasn't enough
+## What we built afterward — and why it wasn't enough
 
 The obvious response to an outage like the one in Part 1 is to get told when infrastructure changes, rather than discover it during the next incident. So we built change notifications, one pipeline per account:
 
@@ -28,7 +30,7 @@ Ten per-account feeds tell you what changed inside each account, but to use them
 
 > The lesson wasn't that notifications were a bad idea. It was that audit is a read-side concern, and read-side concerns belong in one place instead of being copied into every account that emits events.
 
-### The shape of the fix
+## The shape of the fix
 
 If answers live in N accounts and you can only ask one at a time, the fix is a single place that holds all of them. How each account's events reach that one place is a delivery question, covered in Part 4 — not a candidate itself. Four storage and query candidates were on the table, and why three lost is almost entirely about *what each one bills for* rather than what each can do.
 

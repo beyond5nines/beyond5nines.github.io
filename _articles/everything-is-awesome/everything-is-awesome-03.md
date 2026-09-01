@@ -1,9 +1,11 @@
 ---
 layout: post
 title: "Everything is Awesome! The Monitoring Gap"
+short_title: "The Monitoring Gap"
 date: 2026-04-24 12:00:00 -0000
 categories: neo4j apoc observability
 series: Everything is Awesome!
+excerpt: "Five monitoring layers, none of which tracked APOC procedure cost. A StackOverflowError inside apoc.convert.toTree preceded thread starvation by two minutes — and nothing alerted."
 redirect_from:
   - /2026/04/24/everything-is-awesome-03/
 ---

@@ -4,6 +4,7 @@ title: "The specified subnet does not have enough free addresses to satisfy the 
 date: 2026-04-10 12:00:00 -0000
 categories: aws glue serverless
 series: Look Ma! no servers
+excerpt: "Split the shared subnet by blast radius, then add admission control — a pre-launch check that counts live ENIs and refuses to start a job if the subnet can't absorb it."
 ---
 
 In [Part 1](/look-ma-no-servers-01/) we diagnosed the root cause: AWS Glue's ENI lifecycle extends 60+ minutes beyond job completion, every job category shared a single /26, and the launcher had no visibility into actual subnet state. The fix wasn't more IPs. It was feedback.

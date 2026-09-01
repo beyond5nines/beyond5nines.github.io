@@ -86,15 +86,20 @@ layout: default
 
   <footer class="post-footer">
     <div class="container container-narrow">
-      {% assign sorted = site.articles | sort: "date" %}
-      {% for article in sorted %}
+      {% if page.series %}
+        {% assign nav_pool = site.articles | where: "series", page.series | where_exp: "p", "p.pinned != true" | sort: "date" %}
+      {% else %}
+        {% assign nav_pool = site.articles | sort: "date" %}
+      {% endif %}
+      {% for article in nav_pool %}
         {% if article.url == page.url %}
           {% unless forloop.first %}
-            {% assign prev_article = sorted[forloop.index0 | minus: 1] %}
+            {% assign prev_idx = forloop.index0 | minus: 1 %}
+            {% assign prev_article = nav_pool[prev_idx] %}
           {% endunless %}
           {% unless forloop.last %}
             {% assign next_idx = forloop.index0 | plus: 1 %}
-            {% assign next_article = sorted[next_idx] %}
+            {% assign next_article = nav_pool[next_idx] %}
           {% endunless %}
         {% endif %}
       {% endfor %}
@@ -161,6 +166,45 @@ layout: default
   document.addEventListener('visibilitychange', function () {
     document.hidden ? stop() : start();
   });
+})();
+
+/* ── Auto-generated Table of Contents ── */
+(function () {
+  var body = document.querySelector('.post-main-body') ||
+             document.querySelector('.post-content .container-narrow');
+  if (!body) return;
+
+  var headings = body.querySelectorAll('h2');
+  if (headings.length < 3) return;
+
+  /* ensure each h2 has an id for linking */
+  headings.forEach(function (h, i) {
+    if (!h.id) {
+      h.id = 'section-' + (i + 1);
+    }
+  });
+
+  var nav = document.createElement('nav');
+  nav.className = 'post-toc';
+  nav.setAttribute('aria-label', 'Table of contents');
+
+  var label = document.createElement('div');
+  label.className = 'post-toc-label';
+  label.textContent = '// in this post';
+  nav.appendChild(label);
+
+  var ol = document.createElement('ol');
+  headings.forEach(function (h) {
+    var li = document.createElement('li');
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    li.appendChild(a);
+    ol.appendChild(li);
+  });
+  nav.appendChild(ol);
+
+  body.insertBefore(nav, body.firstChild);
 })();
 
 /* ── Copy buttons on code blocks ── */

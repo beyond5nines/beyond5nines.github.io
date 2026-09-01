@@ -551,8 +551,8 @@ img {
 
 /* ===== Categories / Topics Section ===== */
 .categories-section {
-  padding: 48px 0 72px;
-  border-top: 1px solid var(--border);
+  padding: 32px 0 16px;
+  border-bottom: 1px solid var(--border);
 }
 
 .categories-list {
@@ -1472,6 +1472,61 @@ img {
 .cat-no-results-prompt {
   color: var(--green);
   font-weight: 700;
+}
+
+/* ===== Table of Contents ===== */
+.post-toc {
+  margin: 0 0 40px;
+  padding: 16px 20px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.post-toc-label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.post-toc ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: toc;
+}
+
+.post-toc li {
+  counter-increment: toc;
+  margin-bottom: 4px;
+}
+
+.post-toc li::before {
+  content: counter(toc, decimal-leading-zero);
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  opacity: 0.5;
+  margin-right: 8px;
+}
+
+.post-toc a {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.post-toc a:hover {
+  color: var(--green);
+  text-decoration: underline;
 }
 
 /* ===== Responsive additions ===== */

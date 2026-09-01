@@ -1,9 +1,11 @@
 ---
 layout: post
 title: "Everything is Awesome! The Schema Query That Wasn't"
+short_title: "The Schema Query That Wasn't"
 date: 2026-04-22 12:00:00 -0000
 categories: neo4j apoc observability
 series: Everything is Awesome!
+excerpt: "Every Spark connect session ran five APOC schema introspection calls before the first application query — 42 seconds and 56,000 page faults for 39 KB of metadata nobody used."
 redirect_from:
   - /2026/04/22/everything-is-awesome-02/
 ---

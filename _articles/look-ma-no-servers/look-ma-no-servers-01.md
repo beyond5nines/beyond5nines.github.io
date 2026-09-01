@@ -4,6 +4,7 @@ title: "The specified subnet does not have enough free addresses to satisfy the 
 date: 2026-04-09 12:00:00 -0000
 categories: aws glue serverless
 series: Look Ma! no servers
+excerpt: "Every morning at 7 AM our Glue jobs failed — the subnet had no IPs left. ENIs from finished jobs lingered 60+ minutes, and every job category shared a single /26."
 redirect_from:
   - /2026/04/09/look-ma-no-servers-01/
 ---

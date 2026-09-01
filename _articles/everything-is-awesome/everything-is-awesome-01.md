@@ -1,9 +1,11 @@
 ---
 layout: post
 title: "Everything is Awesome! The Tree That Ate the Cache"
+short_title: "The Tree That Ate the Cache"
 date: 2026-04-20 12:00:00 -0000
 categories: neo4j apoc observability
 series: Everything is Awesome!
+excerpt: "A one-second tree query was silently evicting 793K page cache entries per call. The APOC toTree procedure traded O(n) Cypher for an opaque JVM function that bypassed every cache safeguard Neo4j offers."
 redirect_from:
   - /2026/04/20/everything-is-awesome-02/
   - /everything-is-awesome-02/

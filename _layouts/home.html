@@ -33,7 +33,35 @@ layout: default
   </div>
 </section>
 
-<section class="posts-section">
+{% assign all_cats = site.articles | map: "categories" | flatten | uniq %}
+{% if all_cats.size > 0 %}
+<section class="categories-section">
+  <div class="container">
+    <div class="section-header">
+      <p class="section-label">// filter by topic</p>
+      <h2>Topics</h2>
+    </div>
+    <div class="categories-list" id="cat-filter-list">
+      <button class="category-tag active" data-cat="all" onclick="filterByCategory('all')">
+        all
+        <span class="count">{{ site.articles | size }}</span>
+      </button>
+      {% for cat in all_cats %}
+      {% assign cat_count = site.articles | where_exp: "a", "a.categories contains cat" | size %}
+      <button class="category-tag" data-cat="{{ cat }}" onclick="filterByCategory('{{ cat }}')">
+        {{ cat }}
+        <span class="count">{{ cat_count }}</span>
+      </button>
+      {% endfor %}
+    </div>
+    <div class="cat-no-results" id="cat-no-results" style="display:none">
+      <span class="cat-no-results-prompt">$</span> grep -r "<span id="cat-no-query"></span>" — 0 results
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="posts-section" id="posts-section">
   <div class="container">
     <div class="section-header">
       <p class="section-label">// investigations</p>
@@ -76,7 +104,7 @@ layout: default
               <span class="post-reading-time">&middot; {{ minutes }} min read</span>
             </div>
             <h3 class="post-title">
-              <a href="{{ series_index.url | relative_url }}">{{ series_index.title }}</a>
+              <a href="{{ series_index.url | relative_url }}">{% if series_index.short_title %}{{ series_index.short_title }}{% else %}{{ series_index.title }}{% endif %}</a>
             </h3>
             <p class="post-excerpt">
               {{ series_index.excerpt | strip_html | truncate: 160 }}
@@ -104,7 +132,7 @@ layout: default
               <span class="post-reading-time">&middot; {{ minutes }} min read</span>
             </div>
             <h3 class="post-title">
-              <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+              <a href="{{ post.url | relative_url }}">{% if post.short_title %}{{ post.short_title }}{% else %}{{ post.title }}{% endif %}</a>
             </h3>
             <p class="post-excerpt">
               {{ post.excerpt | strip_html | truncate: 160 }}
@@ -140,7 +168,7 @@ layout: default
               <span class="post-reading-time">&middot; {{ minutes }} min read</span>
             </div>
             <h3 class="post-title">
-              <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+              <a href="{{ post.url | relative_url }}">{% if post.short_title %}{{ post.short_title }}{% else %}{{ post.title }}{% endif %}</a>
             </h3>
             <p class="post-excerpt">
               {{ post.excerpt | strip_html | truncate: 160 }}
@@ -162,33 +190,7 @@ layout: default
   </div>
 </section>
 
-{% assign all_cats = site.articles | map: "categories" | flatten | uniq %}
-{% if all_cats.size > 0 %}
-<section class="categories-section">
-  <div class="container">
-    <div class="section-header">
-      <p class="section-label">// filter by topic</p>
-      <h2>Topics</h2>
-    </div>
-    <div class="categories-list" id="cat-filter-list">
-      <button class="category-tag active" data-cat="all" onclick="filterByCategory('all')">
-        all
-        <span class="count">{{ site.articles | size }}</span>
-      </button>
-      {% for cat in all_cats %}
-      {% assign cat_count = site.articles | where_exp: "a", "a.categories contains cat" | size %}
-      <button class="category-tag" data-cat="{{ cat }}" onclick="filterByCategory('{{ cat }}')">
-        {{ cat }}
-        <span class="count">{{ cat_count }}</span>
-      </button>
-      {% endfor %}
-    </div>
-    <div class="cat-no-results" id="cat-no-results" style="display:none">
-      <span class="cat-no-results-prompt">$</span> grep -r "<span id="cat-no-query"></span>" — 0 results
-    </div>
-  </div>
-</section>
-{% endif %}
+
 
 <script>
 /* ── Hero typewriter ── */
@@ -236,6 +238,10 @@ function filterByCategory(cat) {
   document.querySelectorAll('#cat-filter-list .category-tag').forEach(function (btn) {
     btn.classList.toggle('active', btn.dataset.cat === cat);
   });
+
+  /* scroll posts into view */
+  var postsEl = document.getElementById('posts-section');
+  if (postsEl) postsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   /* show/hide post cards */
   var cards = document.querySelectorAll('.post-card');

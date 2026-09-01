@@ -1,9 +1,11 @@
 ---
 layout: post
 title: "NOERROR, No App — Part 2: NODATA vs NXDOMAIN, and how to prove it to yourself"
+short_title: "Part 2: NODATA vs NXDOMAIN"
 date: 2026-06-18 12:00:00 -0000
 categories: aws route53 dns
 series: "NOERROR, No App"
+excerpt: "NODATA and NXDOMAIN are two response codes apart but mean opposite things. One tells you the name is gone; the other says the query worked — then hands back nothing usable."
 redirect_from:
   - /part2-nodata-vs-nxdomain/
 ---
@@ -12,7 +14,7 @@ redirect_from:
 
 An `A` record gets deleted. A DNS lookup against the name *succeeds* — no error, no timeout — and still hands back nothing usable. That gap between "the query worked" and "the app works" is easy to misread, expensive when you do, and only two response codes apart.
 
-### NODATA vs NXDOMAIN — why the difference matters
+## NODATA vs NXDOMAIN — why the difference matters
 
 These two look similar at a glance and mean opposite things:
 
@@ -37,7 +39,7 @@ The most common cause is exactly what it sounds like: the record type you're ask
 
 Two DNS flags are worth telling apart when you're reading any response: `aa` is set by the responder and means this server is authoritative for the zone. `rd` is set by the client and only records that recursion was requested — it says nothing about how the answer was obtained. `aa` with no `ra` beside it is a server answering from its own zone data rather than a resolver serving from cache.
 
-### Operator checklist
+## Operator checklist
 
 If you're staring at an unreachable service right now, this is the order that resolves the ambiguity fastest.
 
@@ -88,13 +90,13 @@ dig app.example.com                       # your resolver: what users still see
 
 Two habits worth keeping. Only one `--lookup-attributes` is allowed per `cloudtrail lookup-events` call, so filter on the most selective attribute and post-process the rest. And check the `SERVER:` line in any `dig` output before you believe it — it is the difference between reading your zone and reading someone else's.
 
-### References
+## References
 
 - [RFC 2308 — Negative Caching of DNS Queries](https://www.rfc-editor.org/rfc/rfc2308.html) — defines NODATA (RCODE `NOERROR` with no answer records) and specifies the negative-cache TTL as `min(SOA record TTL, SOA MINIMUM)`, not the `MINIMUM` field alone.
 - [Logging Amazon Route 53 API calls with AWS CloudTrail](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/logging-using-cloudtrail.html) — CloudTrail records every Route 53 API call, including who made it and from which IP. Three things are easy to conflate: Route 53 is a global service, not a regional one; its management events are recorded as global service events, typically surfaced through `us-east-1`, which is why the lookups here pin that Region; and what you can see depends on where you look — Event History is per account, per Region, 90 days, while a delivered trail depends on that trail's settings, including whether global service events are included.
 - [Get notified when changes are made to Route 53](https://repost.aws/knowledge-center/route53-change-notifications) — the per-account EventBridge-on-`ChangeResourceRecordSets` pattern, the shape of the notification pipelines covered in [Part 3](/noerror-no-app-03/).
 
-### Appendix: reproduce it yourself
+## Appendix: reproduce it yourself
 
 Ten minutes to run, no root, nothing touching your machine's real DNS. The control case at the end is the part that convinces.
 

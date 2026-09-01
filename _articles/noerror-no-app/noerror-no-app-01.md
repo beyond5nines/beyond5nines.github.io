@@ -1,9 +1,11 @@
 ---
 layout: post
 title: "NOERROR, No App — Part 1: The Incident"
+short_title: "Part 1: The Incident"
 date: 2026-06-17 12:00:00 -0000
 categories: aws route53 cloudtrail
 series: "NOERROR, No App"
+excerpt: "A deleted Route 53 A record took the app down — but DNS returned NOERROR, not NXDOMAIN. Finding which of three accounts owned the zone cost 75 minutes of hand-searching."
 redirect_from:
   - /part1-the-incident/
 ---
@@ -21,7 +23,7 @@ redirect_from:
 | T+45 | App serving again, once the negative cache aged out |
 | T+75 | Attribution complete — the deleting call located in that account's trail |
 
-### The alert, and ruling out the app
+## The alert, and ruling out the app
 
 It started with a Slack alert: Our monitoring probe had gone red. Tickets flooded in seconds later, so this was total and it was hitting real users. No 500s, no latency spike, nothing serving. The first instinct is always the app tier, so that is where we looked. It was all healthy.
 
@@ -68,7 +70,7 @@ One thing made it "No answer" rather than "no such name": a leftover TXT record 
 
 The question changed: find the record, find who deleted it, put it back.
 
-### The blind moment
+## The blind moment
 
 We knew *what* — an A record was deleted. We had no fast way to answer *where* or *who*.
 
@@ -128,7 +130,7 @@ Now you have the timestamp, the calling ARN, the source IP, and — via `userAge
 
 Note the walls. `lookup-events` is scoped to the account and Region you query, and Event History reaches back 90 days. The tooling could always tell us — but only once we already knew which account to ask.
 
-### We found who — eventually
+## We found who — eventually
 
 Once the app was back, that `lookup-events` call — run against the legacy account, the one that had owned the zone — returned the `ChangeResourceRecordSets` delete. The `userIdentity` on it, a role and session, traced back to one of us. An SRE running a cleanup had deleted the record by accident.
 

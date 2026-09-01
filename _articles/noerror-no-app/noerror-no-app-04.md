@@ -1,21 +1,23 @@
 ---
 layout: post
 title: "NOERROR, No App — Part 4: The Fix"
+short_title: "Part 4: The Fix"
 date: 2026-06-20 12:00:00 -0000
 categories: aws route53 cloudtrail athena
 series: "NOERROR, No App"
 author: Rahul Sharma
+excerpt: "One org trail, one S3 bucket, one Athena table — replaces N per-account pipelines. Partition projection gives sub-second queries across every account without a crawler or ETL."
 redirect_from:
   - /part4-the-fix/
 ---
 
 *Part 4 of the [NOERROR, No App](/noerror-no-app/) series. [Part 1](/noerror-no-app-01/) has the incident; [Part 3](/noerror-no-app-03/) has the options we weighed.*
 
-### Where we left off
+## Where we left off
 
 In **[Part 1](/noerror-no-app-01/)**, a deleted Route 53 record took the app down while DNS looked healthy — a **NODATA** answer, not the louder `NXDOMAIN` (the mechanics and a reproducible lab are in [Part 2](/noerror-no-app-02/)). Finding *which of three accounts* held the zone, then *who* deleted it, cost 75 minutes of hand-searching 60-plus records across three consoles — because at the time there was no audit path at all. The per-account notification pipelines we built afterwards ([Part 3](/noerror-no-app-03/)) answered the wrong question and aged independently. Audit is a read-side concern; it belongs in one place. [Part 3](/noerror-no-app-03/) has the cost comparison against AWS Config, self-managed Elasticsearch/OpenSearch and CloudTrail Lake — S3 + Athena won because it charges for retention and for the questions you actually ask, not for data arriving; CloudWatch, where AWS now steers ex-Lake users, has the same standing-ingestion problem as the others. Here's the one place.
 
-### The fix: one trail, one bucket, one place to query
+## The fix: one trail, one bucket, one place to query
 
 Invert it. Instead of N pipelines pushing notifications out, every account's own CloudTrail delivers into one central bucket, and one query surface reads across all of them.
 
@@ -145,7 +147,7 @@ The `human` column resolves cleanly when sessions carry a person — IAM users, 
 
 The only automation in the design: an hourly EventBridge schedule runs one Athena query — mutating calls across all accounts, today's `log_date` partition only — and posts a digest to SNS, fanning out to Slack, email, or a ticket. One Lambda, running in the audit account, scan bounded by the same partition filter as everything else.
 
-### Honest about what this is — and isn't
+## Honest about what this is — and isn't
 
 This is a forensics and trend system, not a real-time alarm:
 
@@ -153,6 +155,6 @@ This is a forensics and trend system, not a real-time alarm:
 - **The trail can be turned off.** Each account's trail is local, and with no Organization there's no SCP to stop `cloudtrail:StopLogging` there. Deny that action (and `DeleteTrail`/`UpdateTrail`/`PutEventSelectors`) to everyone but a break-glass role, and alarm on delivery gaps per account prefix — a stopped trail is silence, not an error.
 - **The cadence is forensic.** CloudTrail delivery to S3 lags the API call by up to ~15 minutes, and the hourly sweep adds up to an hour worst case to alert — fine for "what changed across the accounts," not for standing between you and a hard-down outage. When seconds matter on a specific dangerous call, pair this with an **EventBridge rule** matching the event pattern (`Delete*`, `Terminate*`, Route 53 record deletes) straight to SNS: Athena stays the system of record, the rule is the fast tap on the shoulder.
 
-### The cost that never showed up on the AWS bill
+## The cost that never showed up on the AWS bill
 
 The Athena line item is the small number. The one that matters is the cost this replaced: ten near-identical notification stacks to patch, rotate secrets in, and upgrade, plus a new one every time an account was spun up — on-call and platform time that grew with every account added. Maintenance now drops to one delivery path with no application code, so onboarding an account is roughly a bucket-policy line, and "who changed this, where" goes from an hour across three consoles to a sub-second query.
