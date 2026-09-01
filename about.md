@@ -16,16 +16,6 @@ I'm Rahul ,running SRE and data engineering practice based in New Jersey. I work
 
 ---
 
-## What you'll find here
-
-Every post follows the same structure: the failure, the investigation, the fix. No theory without a production problem behind it.
-
-Current series:
-
-- **[Look Ma, No Servers!](/look-ma-no-servers/)** — AWS Glue, serverless ETL, and the hidden constraints behind the abstraction
-
----
-
 ## Open source
 
 Tools built during these investigations are published at [github.com/beyond5nines](https://github.com/beyond5nines).
