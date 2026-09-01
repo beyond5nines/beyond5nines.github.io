@@ -5,13 +5,15 @@ date: 2026-06-20 12:00:00 -0000
 categories: aws route53 cloudtrail athena
 series: "NOERROR, No App"
 author: Rahul Sharma
+redirect_from:
+  - /part4-the-fix/
 ---
 
-*Part 4 of the [NOERROR, No App](/noerror-no-app-intro/) series. [Part 1](/part1-the-incident/) has the incident; [Part 3](/part3-why-per-account-pipelines-fail/) has the options we weighed.*
+*Part 4 of the [NOERROR, No App](/noerror-no-app/) series. [Part 1](/noerror-no-app-01/) has the incident; [Part 3](/noerror-no-app-03/) has the options we weighed.*
 
 ### Where we left off
 
-In **[Part 1](/part1-the-incident/)**, a deleted Route 53 record took the app down while DNS looked healthy — a **NODATA** answer, not the louder `NXDOMAIN` (the mechanics and a reproducible lab are in [Part 2](/part2-nodata-vs-nxdomain/)). Finding *which of three accounts* held the zone, then *who* deleted it, cost 75 minutes of hand-searching 60-plus records across three consoles — because at the time there was no audit path at all. The per-account notification pipelines we built afterwards ([Part 3](/part3-why-per-account-pipelines-fail/)) answered the wrong question and aged independently. Audit is a read-side concern; it belongs in one place. [Part 3](/part3-why-per-account-pipelines-fail/) has the cost comparison against AWS Config, self-managed Elasticsearch/OpenSearch and CloudTrail Lake — S3 + Athena won because it charges for retention and for the questions you actually ask, not for data arriving; CloudWatch, where AWS now steers ex-Lake users, has the same standing-ingestion problem as the others. Here's the one place.
+In **[Part 1](/noerror-no-app-01/)**, a deleted Route 53 record took the app down while DNS looked healthy — a **NODATA** answer, not the louder `NXDOMAIN` (the mechanics and a reproducible lab are in [Part 2](/noerror-no-app-02/)). Finding *which of three accounts* held the zone, then *who* deleted it, cost 75 minutes of hand-searching 60-plus records across three consoles — because at the time there was no audit path at all. The per-account notification pipelines we built afterwards ([Part 3](/noerror-no-app-03/)) answered the wrong question and aged independently. Audit is a read-side concern; it belongs in one place. [Part 3](/noerror-no-app-03/) has the cost comparison against AWS Config, self-managed Elasticsearch/OpenSearch and CloudTrail Lake — S3 + Athena won because it charges for retention and for the questions you actually ask, not for data arriving; CloudWatch, where AWS now steers ex-Lake users, has the same standing-ingestion problem as the others. Here's the one place.
 
 ### The fix: one trail, one bucket, one place to query
 

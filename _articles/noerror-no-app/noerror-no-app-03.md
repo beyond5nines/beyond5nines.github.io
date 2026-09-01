@@ -4,9 +4,11 @@ title: "NOERROR, No App — Part 3: Why per-account pipelines don't scale"
 date: 2026-06-19 12:00:00 -0000
 categories: aws route53 cloudtrail architecture
 series: "NOERROR, No App"
+redirect_from:
+  - /part3-why-per-account-pipelines-fail/
 ---
 
-*Part 3 of the [NOERROR, No App](/noerror-no-app-intro/) series. [Part 1](/part1-the-incident/) has the incident that made this necessary.*
+*Part 3 of the [NOERROR, No App](/noerror-no-app/) series. [Part 1](/noerror-no-app-01/) has the incident that made this necessary.*
 
 ### What we built afterward — and why it wasn't enough
 
@@ -41,4 +43,4 @@ Price them against one scenario: ten accounts, roughly 5 GB a month of CloudTrai
 
 Pricing changes, and those figures are illustrative: the useful comparison here is billing shape, not the exact dollar amount. Substitute your own numbers before trusting the ratio, since the gap moves with how much your estate changes versus how much you query. But the shape is the point. Three of the four charge continuously for data arriving. The fourth charges for keeping it and for the questions you actually ask, which in forensic use is a handful a month.
 
-That leaves the boring one. The build itself is in **[Part 4 — The Fix](/part4-the-fix/)**.
+That leaves the boring one. The build itself is in **[Part 4 — The Fix](/noerror-no-app-04/)**.

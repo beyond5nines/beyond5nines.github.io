@@ -4,9 +4,11 @@ title: "NOERROR, No App — Part 1: The Incident"
 date: 2026-06-17 12:00:00 -0000
 categories: aws route53 cloudtrail
 series: "NOERROR, No App"
+redirect_from:
+  - /part1-the-incident/
 ---
 
-*Part 1 of the [NOERROR, No App](/noerror-no-app-intro/) series. Start there for the background and the fix menu.*
+*Part 1 of the [NOERROR, No App](/noerror-no-app/) series. Start there for the background and the fix menu.*
 
 | Time | What happened |
 |---|---|
@@ -62,7 +64,7 @@ Status `NOERROR` with `ANSWER: 0`: the query succeeded and returned nothing. The
 
 We ruled out the near misses while we were there. An `AAAA` query came back the same way, `NOERROR` with an empty answer, so IPv6 clients weren't quietly succeeding. And `app` was a plain address record, not a `CNAME` or alias pointing at some other target that had failed on its own. One record type, deleted.
 
-One thing made it "No answer" rather than "no such name": a leftover TXT record beside the deleted `A` meant the name still existed, so the server could only say "not this type," not "no such name" — the reason we got the quieter `NOERROR` instead of the loud, honest `NXDOMAIN`. Nothing watching the endpoint distinguished that empty, successful response from a healthy one, so "the endpoint is down" pointed straight at the app. *(Full protocol detail and a reproducible lab: [Part 2](/part2-nodata-vs-nxdomain/).)*
+One thing made it "No answer" rather than "no such name": a leftover TXT record beside the deleted `A` meant the name still existed, so the server could only say "not this type," not "no such name" — the reason we got the quieter `NOERROR` instead of the loud, honest `NXDOMAIN`. Nothing watching the endpoint distinguished that empty, successful response from a healthy one, so "the endpoint is down" pointed straight at the app. *(Full protocol detail and a reproducible lab: [Part 2](/noerror-no-app-02/).)*
 
 The question changed: find the record, find who deleted it, put it back.
 
@@ -143,4 +145,4 @@ Three of those four were pure blindness, and they owned the clock. Of the ~45 mi
 
 Visibility is only half the answer. It tells you who and where after the fact, not "don't." The complementary guardrail is IAM: scope permissions so that few principals can call `ChangeResourceRecordSets` on load-bearing zones, and require a second set of eyes on those who can. A tightly scoped resource policy won't stop every mistake, but it raises the bar from "any engineer with console access" to "one of two people, both of whom know what they're touching."
 
-So why couldn't we? Because nothing gave us a single view across accounts. The fix we reached for first — a notification pipeline in every account — turned out to answer the wrong question. That story, and the alternatives we weighed, is in [Part 3 — Why per-account pipelines don't scale](/part3-why-per-account-pipelines-fail/). The full protocol breakdown of NODATA vs NXDOMAIN, an operator checklist, and a ten-minute reproducible lab are in [Part 2](/part2-nodata-vs-nxdomain/). The thing we settled on gets built in [Part 4 — The Fix](/part4-the-fix/).
+So why couldn't we? Because nothing gave us a single view across accounts. The fix we reached for first — a notification pipeline in every account — turned out to answer the wrong question. That story, and the alternatives we weighed, is in [Part 3 — Why per-account pipelines don't scale](/noerror-no-app-03/). The full protocol breakdown of NODATA vs NXDOMAIN, an operator checklist, and a ten-minute reproducible lab are in [Part 2](/noerror-no-app-02/). The thing we settled on gets built in [Part 4 — The Fix](/noerror-no-app-04/).

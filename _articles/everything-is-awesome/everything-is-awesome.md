@@ -40,20 +40,20 @@ For two weeks, our followers fired daily Raft replication alerts — 28,103 entr
 ---
 
 ### Part 2: [The Schema Query That Wasn't](/everything-is-awesome-02/)
-**The problem:** A schema introspection call runs on every Spark job connect. Returns 8 KB. Takes 3.7 seconds. Reads 87,000 pages.
+**The problem:** A schema introspection call runs on every Spark job connect — five APOC calls before the first application query. Returns 8–18 KB per call. Takes 3–14 seconds each. Causes 56,000 page faults per connect session for 39 KB of result data.
 
-**The root cause:** `apoc.meta.nodeTypeProperties` doesn't read metadata — it samples real nodes across every label in the database, scattering reads across the entire store.
+**The root cause:** `apoc.meta.nodeTypeProperties` and `apoc.meta.relTypeProperties` don't read metadata — they sample real nodes and relationships across every label in the database, scattering reads across the entire store.
 
-**The fix:** Explicit sample limits, label filtering, and caching the result application-side instead of re-querying on every connect.
+**The fix:** Explicit sample limits, label filtering, caching the result application-side, and upgrading the Spark connector to v5.x which uses built-in schema procedures instead of APOC sampling.
 
 ---
 
 ### Part 3: [The Monitoring Gap](/everything-is-awesome-03/)
-**The problem:** APOC's own monitoring exposes zero per-query metrics. Prometheus sees global counters. `SHOW TRANSACTIONS` sees an opaque procedure call. Nobody connects the procedure to the cache eviction until it's too late.
+**The problem:** Five monitoring layers — application dashboards, Prometheus metrics, APOC's own monitoring procedures, `SHOW TRANSACTIONS`, and the troubleshooting runbook — all missed APOC as a contributor to the February 17 thread exhaustion incident. A single `toTree` call at 12:12 UTC caused 9,001 page faults and consumed 42 seconds of CPU. The monitoring saw a one-second read.
 
-**The root cause:** APOC procedures that wrap internal operations — batching, tree-building, schema sampling — are invisible to every monitoring layer. The only forensic tool is the query log, after the fact.
+**The root cause:** APOC procedures wrap arbitrary JVM code behind a `CALL` statement, trading operational transparency for developer convenience. Every monitoring layer inherits that trade-off. A wide-open `allowlist=apoc.*` configuration compounds the gap — any client can call any procedure, and the monitoring stack is equally blind to all of them. The only forensic surface is the query log — and nobody was reading it in near-real-time.
 
-**The fix:** Query log analysis pipelines, page cache correlation dashboards, and treating every `CALL apoc.` as a workload, not a function call.
+**The fix:** Query log pipelines with Vector and VictoriaMetrics, APOC-specific dashboard panels, cumulative page fault alerting by query pattern, tightening the procedure allowlist from `apoc.*` to an explicit set, and a runbook update that adds cumulative impact analysis alongside single-query triage.
 
 ---
 
