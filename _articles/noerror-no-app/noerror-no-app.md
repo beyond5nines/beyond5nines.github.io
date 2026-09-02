@@ -1,6 +1,7 @@
 ---
 layout: post
-title: "NOERROR, No App — seeing across AWS accounts"
+title: "NOERROR, No App"
+title_display: 'NOERROR, No <span class="letter-flicker">A</span>pp'
 date: 2026-06-16 12:00:00 -0000
 categories: aws route53 cloudtrail
 series: "NOERROR, No App"

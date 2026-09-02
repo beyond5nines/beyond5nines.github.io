@@ -31,34 +31,6 @@ layout: default
   </div>
 </section>
 
-{% assign all_cats = site.articles | map: "categories" | flatten | uniq %}
-{% if all_cats.size > 0 %}
-<section class="categories-section">
-  <div class="container">
-    <div class="section-header">
-      <p class="section-label">// filter by topic</p>
-      <h2>Topics</h2>
-    </div>
-    <div class="categories-list" id="cat-filter-list">
-      <button class="category-tag active" data-cat="all" onclick="filterByCategory('all')">
-        all
-        <span class="count">{{ site.articles | size }}</span>
-      </button>
-      {% for cat in all_cats %}
-      {% assign cat_count = site.articles | where_exp: "a", "a.categories contains cat" | size %}
-      <button class="category-tag" data-cat="{{ cat }}" onclick="filterByCategory('{{ cat }}')">
-        {{ cat }}
-        <span class="count">{{ cat_count }}</span>
-      </button>
-      {% endfor %}
-    </div>
-    <div class="cat-no-results" id="cat-no-results" style="display:none">
-      <span class="cat-no-results-prompt">$</span> grep -r "<span id="cat-no-query"></span>" — 0 results
-    </div>
-  </div>
-</section>
-{% endif %}
-
 <section class="posts-section" id="posts-section">
   <div class="container">
     <div class="section-header">
@@ -183,6 +155,34 @@ layout: default
     {% endif %}
   </div>
 </section>
+
+{% assign all_cats = site.articles | map: "categories" | flatten | uniq %}
+{% if all_cats.size > 0 %}
+<section class="categories-section">
+  <div class="container">
+    <div class="section-header">
+      <p class="section-label">// filter by topic</p>
+      <h2>Topics</h2>
+    </div>
+    <div class="categories-list" id="cat-filter-list">
+      <button class="category-tag active" data-cat="all" onclick="filterByCategory('all')">
+        all
+        <span class="count">{{ site.articles | size }}</span>
+      </button>
+      {% for cat in all_cats %}
+      {% assign cat_count = site.articles | where_exp: "a", "a.categories contains cat" | size %}
+      <button class="category-tag" data-cat="{{ cat }}" onclick="filterByCategory('{{ cat }}')">
+        {{ cat }}
+        <span class="count">{{ cat_count }}</span>
+      </button>
+      {% endfor %}
+    </div>
+    <div class="cat-no-results" id="cat-no-results" style="display:none">
+      <span class="cat-no-results-prompt">$</span> grep -r "<span id="cat-no-query"></span>" — 0 results
+    </div>
+  </div>
+</section>
+{% endif %}
 
 
 
