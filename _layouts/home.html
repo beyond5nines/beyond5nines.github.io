@@ -10,9 +10,7 @@ layout: default
     </div>
     <h1 class="hero-title">beyond<span class="highlight">5</span>nines</h1>
     <p class="hero-description">
-      Field notes for engineers who build and run production systems.
-      Each post starts with a <strong>real incident</strong> and works through to the fix.
-      No theory without a production problem behind it.
+      Field notes for engineers who run production systems &mdash; every post starts with a <strong>real incident</strong> and works through to the fix.
     </p>
     <div class="hero-meta">
       <div class="hero-stat">
@@ -89,76 +87,58 @@ layout: default
       {% endunless %}
     {% endfor %}
 
+    <div class="series-grid">
     {% for series_name in series_names %}
       {% assign series_index = series_indices | where: "series", series_name | first %}
       {% assign series_posts = episode_posts | where: "series", series_name | sort: "date" %}
-      <div class="series-group">
-        <div class="series-group-header">
+      {% assign incident = series_posts | first %}
+      {% assign part_count = series_posts | size %}
+
+      {% comment %} Combine index + episodes to derive latest date and full category set {% endcomment %}
+      {% assign series_index_arr = series_indices | where: "series", series_name %}
+      {% assign series_all = series_posts | concat: series_index_arr | sort: "date" %}
+      {% assign latest = series_all | last %}
+      {% assign series_cats = series_all | map: "categories" | flatten | uniq %}
+
+      {% if series_index %}
+        {% assign series_summary = series_index.excerpt %}
+      {% else %}
+        {% assign series_summary = incident.excerpt %}
+      {% endif %}
+
+      <article class="series-card" data-cats="{{ series_cats | join: ' ' }}">
+        <div class="series-card-top">
           <span class="series-tag">series</span>
-          <h3>{{ series_name }}</h3>
-          {% if series_index %}
-          <a href="{{ series_index.url | relative_url }}" class="series-index-link">all parts →</a>
-          {% endif %}
+          {% for category in series_cats %}
+          <span class="post-category">{{ category | upcase }}</span>
+          {% endfor %}
         </div>
 
-        {% if series_index %}
-        <article class="post-card pinned" data-cats="{{ series_index.categories | join: ' ' }}">
-          <div class="post-card-content">
-            <div class="post-meta">
-              <span class="pin-badge">INDEX</span>
-              <time datetime="{{ series_index.date | date_to_xmlschema }}">
-                {{ series_index.date | date: "%Y-%m-%d" }}
-              </time>
-              {% for category in series_index.categories %}
-              <span class="post-category">{{ category | upcase }}</span>
-              {% endfor %}
-              {% assign words = series_index.content | number_of_words %}
-              {% assign minutes = words | divided_by: 250 %}
-              {% if minutes < 1 %}{% assign minutes = 1 %}{% endif %}
-              <span class="post-reading-time">&middot; {{ minutes }} min read</span>
-            </div>
-            <h3 class="post-title">
-              <a href="{{ series_index.url | relative_url }}">{% if series_index.short_title %}{{ series_index.short_title }}{% else %}{{ series_index.title }}{% endif %}</a>
-            </h3>
-            <p class="post-excerpt">
-              {{ series_index.excerpt | strip_html | truncate: 160 }}
-            </p>
-            <a href="{{ series_index.url | relative_url }}" class="read-more">
-              <span class="arrow">→</span>
-            </a>
-          </div>
-        </article>
-        {% endif %}
+        <h3 class="series-card-title">
+          {% if series_index %}<a href="{{ series_index.url | relative_url }}">{{ series_name }}</a>{% else %}{{ series_name }}{% endif %}
+        </h3>
 
-        {% for post in series_posts %}
-        <article class="post-card" data-cats="{{ post.categories | join: ' ' }}">
-          <div class="post-card-content">
-            <div class="post-meta">
-              <time datetime="{{ post.date | date_to_xmlschema }}">
-                {{ post.date | date: "%Y-%m-%d" }}
-              </time>
-              {% for category in post.categories %}
-              <span class="post-category">{{ category | upcase }}</span>
-              {% endfor %}
-              {% assign words = post.content | number_of_words %}
-              {% assign minutes = words | divided_by: 250 %}
-              {% if minutes < 1 %}{% assign minutes = 1 %}{% endif %}
-              <span class="post-reading-time">&middot; {{ minutes }} min read</span>
-            </div>
-            <h3 class="post-title">
-              <a href="{{ post.url | relative_url }}">{% if post.short_title %}{{ post.short_title }}{% else %}{{ post.title }}{% endif %}</a>
-            </h3>
-            <p class="post-excerpt">
-              {{ post.excerpt | strip_html | truncate: 160 }}
-            </p>
-            <a href="{{ post.url | relative_url }}" class="read-more">
-              <span class="arrow">→</span>
-            </a>
-          </div>
-        </article>
-        {% endfor %}
-      </div>
+        <div class="series-card-meta">
+          <span class="series-card-parts">{{ part_count }} part{% if part_count != 1 %}s{% endif %}</span>
+          <span class="series-card-dot">&middot;</span>
+          <time datetime="{{ latest.date | date_to_xmlschema }}">updated {{ latest.date | date: "%Y-%m-%d" }}</time>
+        </div>
+
+        <p class="series-card-summary">
+          {{ series_summary | strip_html | truncate: 150 }}
+        </p>
+
+        <div class="series-card-links">
+          {% if incident %}
+          <a href="{{ incident.url | relative_url }}" class="series-card-link primary">start with the incident <span class="arrow">→</span></a>
+          {% endif %}
+          {% if series_index %}
+          <a href="{{ series_index.url | relative_url }}" class="series-card-link">all parts <span class="arrow">→</span></a>
+          {% endif %}
+        </div>
+      </article>
     {% endfor %}
+    </div>
 
     {% assign standalone_posts = episode_posts | where_exp: "post", "post.series == ''" %}
     {% if standalone_posts.size > 0 %}
@@ -257,8 +237,8 @@ function filterByCategory(cat) {
   var postsEl = document.getElementById('posts-section');
   if (postsEl) postsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  /* show/hide post cards */
-  var cards = document.querySelectorAll('.post-card');
+  /* show/hide series cards and standalone post cards */
+  var cards = document.querySelectorAll('.series-card, .post-card');
   var visible = 0;
   cards.forEach(function (card) {
     var cats = (card.dataset.cats || '').split(' ');
@@ -267,7 +247,7 @@ function filterByCategory(cat) {
     if (show) visible++;
   });
 
-  /* show/hide empty series-group headers */
+  /* show/hide empty standalone series-group headers */
   document.querySelectorAll('.series-group').forEach(function (grp) {
     var anyVisible = Array.from(grp.querySelectorAll('.post-card')).some(function (c) {
       return c.style.display !== 'none';
